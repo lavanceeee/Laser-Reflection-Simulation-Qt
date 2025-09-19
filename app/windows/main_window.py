@@ -19,9 +19,11 @@ class MainWindow(QMainWindow):
 
         layout = QVBoxLayout(central_widget)
 
+        #canvas
         self.canvas = CanvasWidget()
         layout.addWidget(self.canvas, 3)
 
+        #panel
         self.control_panel = ControlPanel()
         layout.addWidget(self.control_panel, 1)
 
@@ -31,18 +33,16 @@ class MainWindow(QMainWindow):
         self.control_panel.depth_ratio_changed.connect(self._on_depth_ratio_changed)
         self.control_panel.laser_position_changed.connect(self._on_laser_position_changed)
 
-    def _on_beam_radius_changed(self, value):
+    def _on_beam_radius_changed(self, radius):
+        self.canvas.set_beam_radius(radius)
 
-        print(f"激光半径变为: {value}")
+    def _on_depth_ratio_changed(self, ratio):
 
-    def _on_depth_ratio_changed(self, value):
+        self.canvas.set_depth_ratio(ratio)
 
-        print(f"深径比变为: {value}")
+    def _on_laser_position_changed(self, position):
 
-    def _on_laser_position_changed(self, value):
-
-        print(f"激光位置变为: {value}")
-
+        self.canvas.set_laser_position(position)
 
 
 
