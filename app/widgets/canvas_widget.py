@@ -1,7 +1,11 @@
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtGui import QPainter, QColor
 from app.core.scene_model import SceneModel
-from app.core.static_render import StaticRender
+from app.render.static_render import StaticRender
+from app.render.dynamic_render import DynamicRender
+from app.algorithm.next_pos import NextPosition
+from app.algorithm.update_laser_direction import UpdateLaser
+from app.render.function_render import FunctionRender
 
 class CanvasWidget(QWidget):
     def __init__(self):
@@ -9,19 +13,27 @@ class CanvasWidget(QWidget):
 
         #loading default paramter
         self.scene_model = SceneModel()
+        self.next_position = NextPosition()
 
         self.static_render = StaticRender()
+        self.dynamic_render = DynamicRender()
+        self.function_render = FunctionRender()
 
         #缩放
         self.scale_factor = 1.0
         self.min_scale = 0.1
-        self.max_scale = 5.0
+        self.max_scale = 50.0
 
         self.offset_x = 0.0
         self.offset_y = 0.0
 
+    #绘制静态画面
     def paintEvent(self, event):
         painter = QPainter(self)
+
+        #更新model宽高
+        self.scene_model.canvas_width = painter.window().width()
+        self.scene_model.canvas_height = painter.window().height()
 
         painter.fillRect(self.rect(), QColor(240, 240, 240))
     
@@ -33,11 +45,21 @@ class CanvasWidget(QWidget):
 
         self.static_render.render_scene(
             painter,
-            int(self.width() / self.scale_factor),
-            int(self.height() / self.scale_factor),
+            painter.window().width(),
+            painter.window().height(),
             self.scene_model
         )
 
+        self.dynamic_render.render_laser_firing(painter, self.scene_model)
+
+        #切线
+        self.function_render.render_tangent_line(painter, self.scene_model)
+        
+        # 法线
+        self.function_render.render_normal_line(painter, self.scene_model)
+
+        # # 添加到 paintEvent 的最后
+        # TestRender.draw_current_laser_line(painter, self.scene_model)
         painter.restore()
 
     #鼠标缩放事件
@@ -50,7 +72,7 @@ class CanvasWidget(QWidget):
         delta = event.angleDelta().y()
 
         zoom_in = delta > 0
-        zoom_factor = 1.1 if zoom_in else 1 / 1.1
+        zoom_factor = 1.3 if zoom_in else 1 / 1.3
 
         new_scale = self.scale_factor * zoom_factor
 
@@ -68,20 +90,74 @@ class CanvasWidget(QWidget):
             self.update() 
 
     def set_beam_radius(self, radius):
-        self.beam_radius = radius
+        self.scene_model.laser_radius = radius
         self.update()
 
     def set_depth_ratio(self, ratio):
-        self.depth_ratio = ratio
+        self.scene_model.depth_ratio = ratio
         self.update()
 
     def set_laser_position(self, position):
-        self.laser_position = position
+        self.scene_model.laser_position = position
         self.update()
 
-    
+    def start_laser_firing(self):
+        
+        start_pos = self.scene_model.laser_pos
+        self.scene_model.is_firing = True
+        self.scene_model.laser_path = [start_pos]
 
-    
+        #更新初始坐标
+        self.scene_model.current_segment['path_function']['b'] = start_pos[1]
 
-    
+        #计算交点并绘图
+        self._update_laser_step()
 
+        self.update()
+    
+    def stop_laser_firing(self):
+
+        self.scene_model.is_firing = False
+        self.scene_model.laser_path = []
+
+        self.update()
+
+    def _update_laser_step(self):
+        if not self.scene_model.is_firing:
+            return
+
+        current_position = self.scene_model.laser_path[-1]
+
+        result_point = self.next_position.calcuate_next_pos(current_position, self.scene_model)
+
+        if result_point is not None:
+            self.scene_model.laser_path.append(result_point)
+            self.update()
+
+            #更新segment片段信息
+            UpdateLaser.update_laser(self.scene_model)
+
+            #递归调用更新
+            self._update_laser_step()
+        else:
+            #最后绘制一次尾函数出射
+            self._draw_exit_ray()
+            print("没有交点")
+
+
+    def _draw_exit_ray(self):
+        """绘制出射线"""
+        last_point = self.scene_model.laser_path[-1]
+        last_x, last_y = last_point
+        slope = self.scene_model.current_segment['path_function']['k']
+        
+        if self.scene_model.current_segment['toward_right']:
+            # 向右延伸
+            exit_x = last_x + 20
+        else:
+            # 向左延伸  
+            exit_x = last_x - 20
+            
+        exit_y = last_y + slope * (exit_x - last_x)
+        self.scene_model.laser_path.append((exit_x, exit_y))
+        self.update()

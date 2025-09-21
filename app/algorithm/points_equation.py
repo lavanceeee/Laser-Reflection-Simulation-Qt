@@ -1,5 +1,4 @@
 import math
-from random import gauss
 
 class GaussianEquation:
 
@@ -30,7 +29,3 @@ class GaussianEquation:
             x += step
 
         return points
-
-            
-
-

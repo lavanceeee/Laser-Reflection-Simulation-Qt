@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget, QSpinBox
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget, QSpinBox, QPushButton
 from PyQt6.QtCore import pyqtSignal
 
 class ControlPanel(QWidget):
@@ -6,6 +6,8 @@ class ControlPanel(QWidget):
     beam_radius_changed = pyqtSignal(int)
     depth_ratio_changed = pyqtSignal(int)
     laser_position_changed = pyqtSignal(int)
+    laser_fire_started = pyqtSignal()
+    laser_fire_stopped = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -13,8 +15,12 @@ class ControlPanel(QWidget):
         self._setup_ui()
 
     def _setup_ui(self):
-        layout = QVBoxLayout(self)
-
+        main_layout = QHBoxLayout(self)
+        
+        # 左侧
+        params_widget = QWidget()
+        params_layout = QVBoxLayout(params_widget)
+        
         #激光半径
         beam_layout = QHBoxLayout()
         beam_layout.addWidget(QLabel("激光半径："))
@@ -22,9 +28,8 @@ class ControlPanel(QWidget):
         self.beam_radius.setValue(25)
         self.beam_radius.valueChanged.connect(self.beam_radius_changed.emit)
         beam_layout.addWidget(self.beam_radius)
-        # addStretch()
         beam_layout.addStretch() 
-        layout.addLayout(beam_layout)
+        params_layout.addLayout(beam_layout)
 
         #深径比
         depth_layout = QHBoxLayout()
@@ -34,15 +39,90 @@ class ControlPanel(QWidget):
         self.depth_ratio.valueChanged.connect(self.depth_ratio_changed.emit)
         depth_layout.addWidget(self.depth_ratio)
         depth_layout.addStretch()
-        layout.addLayout(depth_layout)
+        params_layout.addLayout(depth_layout)
 
         #激光入射坐标
         position_layout = QHBoxLayout()
         position_layout.addWidget(QLabel("入射坐标："))
-
         self.laser_pos = QSpinBox()
         self.laser_pos.setValue(25)
         self.laser_pos.valueChanged.connect(self.laser_position_changed.emit)
         position_layout.addWidget(self.laser_pos)
         position_layout.addStretch()
-        layout.addLayout(position_layout)
+        params_layout.addLayout(position_layout)
+        
+        # 右侧
+        button_widget = QWidget()
+        button_layout = QVBoxLayout(button_widget)
+        
+        # 激光控制按钮
+        self.fire_button = QPushButton("开始")
+        self.fire_button.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 6px;
+                font-weight: bold;
+                font-size: 14px;
+                min-width: 80px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+            QPushButton:pressed {
+                background-color: #FF5722;
+            }
+        """)
+        self.fire_button.clicked.connect(self._on_fire_button_clicked)
+        button_layout.addWidget(self.fire_button)
+        button_layout.addStretch()  # 按钮顶部对齐
+        
+        main_layout.addWidget(params_widget, 3)  # 左侧占3份
+        main_layout.addWidget(button_widget, 1)  # 右侧占1份
+
+        # 激光发射状态
+        self.is_firing = False
+
+    def _on_fire_button_clicked(self):
+        if not self.is_firing:
+            # 开始发射
+            self.is_firing = True
+            self.fire_button.setText("停止")
+            self.fire_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #FF5722;
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    font-size: 14px;
+                    min-width: 80px;
+                }
+                QPushButton:hover {
+                    background-color: #E64A19;
+                }
+            """)
+            self.laser_fire_started.emit()
+        else:
+            # 停止发射
+            self.is_firing = False
+            self.fire_button.setText("开始")
+            self.fire_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #4CAF50;
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    font-size: 14px;
+                    min-width: 80px;
+                }
+                QPushButton:hover {
+                    background-color: #45a049;
+                }
+            """)
+            self.laser_fire_stopped.emit()

@@ -33,6 +33,9 @@ class MainWindow(QMainWindow):
         self.control_panel.depth_ratio_changed.connect(self._on_depth_ratio_changed)
         self.control_panel.laser_position_changed.connect(self._on_laser_position_changed)
 
+        self.control_panel.laser_fire_started.connect(self._on_laser_fire_started)
+        self.control_panel.laser_fire_stopped.connect(self._on_laser_fire_stopped)
+
     def _on_beam_radius_changed(self, radius):
         self.canvas.set_beam_radius(radius)
 
@@ -43,6 +46,15 @@ class MainWindow(QMainWindow):
     def _on_laser_position_changed(self, position):
 
         self.canvas.set_laser_position(position)
+
+    def _on_laser_fire_started(self):
+
+        self.canvas.start_laser_firing()
+    
+    def _on_laser_fire_stopped(self):
+
+        self.canvas.stop_laser_firing()
+
 
 
 
