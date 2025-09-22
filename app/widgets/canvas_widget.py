@@ -97,11 +97,18 @@ class CanvasWidget(QWidget):
         self.scene_model.depth_ratio = ratio
         self.update()
 
+
+
+    #关键错误地方
     def set_laser_position(self, position):
         self.scene_model.laser_position = position
         self.update()
 
     def start_laser_firing(self):
+
+        print(f"发射时的位置: {self.scene_model.laser_pos}")
+        print(f"当前选择位置: {self.scene_model.laser_position}")
+
         
         start_pos = self.scene_model.laser_pos
         self.scene_model.is_firing = True
@@ -115,13 +122,6 @@ class CanvasWidget(QWidget):
 
         self.update()
     
-    def stop_laser_firing(self):
-
-        self.scene_model.is_firing = False
-        self.scene_model.laser_path = []
-
-        self.update()
-
     def _update_laser_step(self):
         if not self.scene_model.is_firing:
             return
@@ -142,7 +142,9 @@ class CanvasWidget(QWidget):
         else:
             #最后绘制一次尾函数出射
             self._draw_exit_ray()
-            print("没有交点")
+
+            print("结束")
+
 
 
     def _draw_exit_ray(self):
@@ -161,3 +163,26 @@ class CanvasWidget(QWidget):
         exit_y = last_y + slope * (exit_x - last_x)
         self.scene_model.laser_path.append((exit_x, exit_y))
         self.update()
+
+    #清空显示台
+    def clear_display(self):
+        self.scene_model.laser_path = []
+
+        self.scene_model.tangent_slopes = []
+
+        self.scene_model.is_firing = False
+
+        #坑：忘记更新直线为水平了
+
+        self.scene_model.current_segment = {
+            'toward_right': True,
+            'step_size': 3,
+            'path_function': {
+                'k': 0,          
+                'b': self.scene_model.laser_pos[1]
+            },
+            'segment_id': 0
+        }
+
+        self.update()
+

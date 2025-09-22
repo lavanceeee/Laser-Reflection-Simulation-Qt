@@ -7,7 +7,8 @@ class ControlPanel(QWidget):
     depth_ratio_changed = pyqtSignal(int)
     laser_position_changed = pyqtSignal(int)
     laser_fire_started = pyqtSignal()
-    laser_fire_stopped = pyqtSignal()
+    clear_display = pyqtSignal()
+
 
     def __init__(self):
         super().__init__()
@@ -75,54 +76,61 @@ class ControlPanel(QWidget):
                 background-color: #FF5722;
             }
         """)
+
+        #清空显示台
+        self.clear_display_button = QPushButton("清空显示台")
+        self.clear_display_button.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 6px;
+                font-weight: bold;
+                font-size: 14px;
+                min-width: 80px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+            QPushButton:pressed {
+                background-color: #FF5722;
+            }
+        """)
+
         self.fire_button.clicked.connect(self._on_fire_button_clicked)
+        self.clear_display_button.clicked.connect(self._on_clear_display_button_clicked)
+
         button_layout.addWidget(self.fire_button)
+        button_layout.addWidget(self.clear_display_button)
         button_layout.addStretch()  # 按钮顶部对齐
         
         main_layout.addWidget(params_widget, 3)  # 左侧占3份
         main_layout.addWidget(button_widget, 1)  # 右侧占1份
 
-        # 激光发射状态
-        self.is_firing = False
+        # # 激光发射状态
+        # self.is_firing = False
 
     def _on_fire_button_clicked(self):
-        if not self.is_firing:
+        # if not self.is_firing:
             # 开始发射
-            self.is_firing = True
-            self.fire_button.setText("停止")
-            self.fire_button.setStyleSheet("""
-                QPushButton {
-                    background-color: #FF5722;
-                    color: white;
-                    border: none;
-                    padding: 12px 24px;
-                    border-radius: 6px;
-                    font-weight: bold;
-                    font-size: 14px;
-                    min-width: 80px;
-                }
-                QPushButton:hover {
-                    background-color: #E64A19;
-                }
-            """)
+            # self.is_firing = True
+            # self.fire_button.setStyleSheet("""
+            #     QPushButton {
+            #         background-color: #FF5722;
+            #         color: white;
+            #         border: none;
+            #         padding: 12px 24px;
+            #         border-radius: 6px;
+            #         font-weight: bold;
+            #         font-size: 14px;
+            #         min-width: 80px;
+            #     }
+            #     QPushButton:hover {
+            #         background-color: #E64A19;
+            #     }
+            # """)
             self.laser_fire_started.emit()
-        else:
-            # 停止发射
-            self.is_firing = False
-            self.fire_button.setText("开始")
-            self.fire_button.setStyleSheet("""
-                QPushButton {
-                    background-color: #4CAF50;
-                    color: white;
-                    border: none;
-                    padding: 12px 24px;
-                    border-radius: 6px;
-                    font-weight: bold;
-                    font-size: 14px;
-                    min-width: 80px;
-                }
-                QPushButton:hover {
-                    background-color: #45a049;
-                }
-            """)
-            self.laser_fire_stopped.emit()
+
+    def _on_clear_display_button_clicked(self):
+        self.clear_display.emit()

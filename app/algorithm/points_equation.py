@@ -11,8 +11,8 @@ class GaussianEquation:
         A = depth_ratio * beam_radius
         mu = 0
 
-        x_start = -3 * sigma
-        x_end = 3 * sigma
+        x_start = - 1.5 * sigma
+        x_end =  1.5 * sigma
         step = 0.5
 
         x = x_start
