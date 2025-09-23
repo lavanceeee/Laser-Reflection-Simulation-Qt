@@ -36,8 +36,8 @@ class CollisionDetector:
 
             return gaussian_y - laser_y 
 
-        t_start = -3 * sigma
-        t_end = 3 * sigma
+        t_start = -1.5 * sigma
+        t_end = 1.5 * sigma
 
         initial_guess = np.linspace(t_start, t_end, 30)
 

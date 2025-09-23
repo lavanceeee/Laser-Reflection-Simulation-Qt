@@ -85,4 +85,34 @@ class StaticRender:
         # 绘制激光位置点
         painter.setPen(QPen(QColor(0, 255, 0), 0))
         painter.drawPoint(QPointF(laser_center_x, laser_y))
-   
+
+        #激光样式
+        self._draw_laser_device(painter, laser_center_x, laser_y)
+
+    def _draw_laser_device(self, painter, center_x, center_y):
+        """绘制激光器设备"""
+        # 转换为整数坐标
+        center_x = int(center_x)
+        center_y = int(center_y)
+        
+        # 小正方形（出射口）- 以入射点为中心
+        square_size = 4
+        square_x = center_x - square_size // 2
+        square_y = center_y - square_size // 2
+    
+        painter.setPen(QPen(QColor(100, 100, 255), 0))  # 蓝色边框
+        painter.setBrush(QColor(200, 200, 255, 100))    # 浅蓝色填充
+        painter.drawRect(square_x, square_y, square_size, square_size)
+    
+        # 长方形（激光器主体）- 在小正方形左侧
+        rect_width = 20
+        rect_height = 6
+        rect_x = center_x - square_size // 2 - rect_width  # 紧贴小正方形左侧
+        rect_y = center_y - rect_height // 2
+    
+        painter.setPen(QPen(QColor(100, 100, 255), 0))  # 蓝色边框
+        painter.setBrush(QColor(150, 150, 255, 100))    # 稍深蓝色填充
+        painter.drawRect(rect_x, rect_y, rect_width, rect_height)
+        
+        # 重置brush避免影响其他绘制！！！
+        painter.setBrush(QColor(0, 0, 0, 0))  # 透明brush

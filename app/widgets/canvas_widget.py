@@ -91,10 +91,16 @@ class CanvasWidget(QWidget):
 
     def set_beam_radius(self, radius):
         self.scene_model.laser_radius = radius
+
+        #坑：忘记更新A的参数
+        self.scene_model.A = self.scene_model.depth_ratio * radius
         self.update()
 
     def set_depth_ratio(self, ratio):
         self.scene_model.depth_ratio = ratio
+
+        #坑：忘记更新A的参数
+        self.scene_model.A = ratio * self.scene_model.laser_radius
         self.update()
 
 

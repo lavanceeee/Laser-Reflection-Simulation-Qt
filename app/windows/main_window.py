@@ -39,6 +39,7 @@ class MainWindow(QMainWindow):
         self.control_panel.clear_display.connect(self._on_clear_display)
         
 
+    #参数变化
     def _on_beam_radius_changed(self, radius):
         self.canvas.set_beam_radius(radius)
 
