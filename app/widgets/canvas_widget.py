@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtGui import QPainter, QColor
+from PyQt6.QtCore import Qt
 from app.core.scene_model import SceneModel
 from app.render.static_render import StaticRender
 from app.render.dynamic_render import DynamicRender
@@ -26,6 +27,11 @@ class CanvasWidget(QWidget):
 
         self.offset_x = 0.0
         self.offset_y = 0.0
+        
+        # 鼠标拖动状态
+        self.is_dragging = False
+        self.drag_start_x = 0
+        self.drag_start_y = 0
 
     #绘制静态画面
     def paintEvent(self, event):
@@ -88,6 +94,38 @@ class CanvasWidget(QWidget):
             self.offset_y = mouse_y - old_pos_y * self.scale_factor
             
             self.update() 
+
+    # 鼠标拖动功能
+    def mousePressEvent(self, event):
+        """鼠标按下开始拖动"""
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.is_dragging = True
+            self.drag_start_x = event.position().x()
+            self.drag_start_y = event.position().y()
+            self.setCursor(Qt.CursorShape.ClosedHandCursor)
+
+    def mouseMoveEvent(self, event):
+        """鼠标移动拖动画布"""
+        if self.is_dragging:
+            # 计算移动距离
+            dx = event.position().x() - self.drag_start_x
+            dy = event.position().y() - self.drag_start_y
+            
+            # 更新偏移量
+            self.offset_x += dx
+            self.offset_y += dy
+            
+            # 更新拖动起始位置
+            self.drag_start_x = event.position().x()
+            self.drag_start_y = event.position().y()
+            
+            self.update()
+
+    def mouseReleaseEvent(self, event):
+        """鼠标释放结束拖动"""
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.is_dragging = False
+            self.setCursor(Qt.CursorShape.ArrowCursor)
 
     def set_beam_radius(self, radius):
         self.scene_model.laser_radius = radius
@@ -191,4 +229,3 @@ class CanvasWidget(QWidget):
         }
 
         self.update()
-
