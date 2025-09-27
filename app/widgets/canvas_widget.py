@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtGui import QPainter, QColor
 from PyQt6.QtCore import Qt
+from app.core import scene_model
 from app.core.scene_model import SceneModel
 from app.render.static_render import StaticRender
 from app.render.dynamic_render import DynamicRender
@@ -128,31 +129,52 @@ class CanvasWidget(QWidget):
             self.setCursor(Qt.CursorShape.ArrowCursor)
 
     def set_beam_radius(self, radius):
+        # clear path if already draw
+        if self.scene_model.is_firing:
+            self.scene_model.reset_model()
+            self.update()
+            
         self.scene_model.laser_radius = radius
+        self.update()
 
-        #坑：忘记更新A的参数
-        self.scene_model.A = self.scene_model.depth_ratio * radius
+    def set_hole_radius(self, hole_radius):
+        # clear path if already draw
+        if self.scene_model.is_firing:
+            self.scene_model.reset_model()
+            self.update()
+
+        self.scene_model.hole_radius = hole_radius
         self.update()
 
     def set_depth_ratio(self, ratio):
+        # clear path if already draw
+        if self.scene_model.is_firing:
+            self.scene_model.reset_model()
+            self.update()
+
         self.scene_model.depth_ratio = ratio
 
         #坑：忘记更新A的参数
         self.scene_model.A = ratio * self.scene_model.laser_radius
         self.update()
 
-
-
-    #关键错误地方
+    # update laser position
     def set_laser_position(self, position):
+
+        # clear path if already draw
+        if self.scene_model.is_firing:
+            self.scene_model.reset_model()
+            self.update()
+            
         self.scene_model.laser_position = position
         self.update()
 
     def start_laser_firing(self):
 
-        print(f"发射时的位置: {self.scene_model.laser_pos}")
-        print(f"当前选择位置: {self.scene_model.laser_position}")
-
+        # reset model parameter
+        if self.scene_model.is_firing:
+            self.scene_model.reset_model()
+            self.update()
         
         start_pos = self.scene_model.laser_pos
         self.scene_model.is_firing = True
@@ -199,10 +221,10 @@ class CanvasWidget(QWidget):
         
         if self.scene_model.current_segment['toward_right']:
             # 向右延伸
-            exit_x = last_x + 20
+            exit_x = last_x + 60
         else:
             # 向左延伸  
-            exit_x = last_x - 20
+            exit_x = last_x - 60
             
         exit_y = last_y + slope * (exit_x - last_x)
         self.scene_model.laser_path.append((exit_x, exit_y))
@@ -217,7 +239,6 @@ class CanvasWidget(QWidget):
         self.scene_model.is_firing = False
 
         #坑：忘记更新直线为水平了
-
         self.scene_model.current_segment = {
             'toward_right': True,
             'step_size': 3,

@@ -8,6 +8,7 @@ class ControlPanel(QWidget):
     laser_position_changed = pyqtSignal(int)
     laser_fire_started = pyqtSignal()
     clear_display = pyqtSignal()
+    hole_radius_changed = pyqtSignal(int)
 
 
     def __init__(self):
@@ -31,6 +32,16 @@ class ControlPanel(QWidget):
         beam_layout.addWidget(self.beam_radius)
         beam_layout.addStretch() 
         params_layout.addLayout(beam_layout)
+
+        #新增：孔洞半径
+        hole_radius_layout = QHBoxLayout()
+        hole_radius_layout.addWidget(QLabel("孔洞半径："))
+        self.hole_radius = QSpinBox()
+        self.hole_radius.setValue(25)
+        self.hole_radius.valueChanged.connect(self.hole_radius_changed.emit)
+        hole_radius_layout.addWidget(self.hole_radius)
+        hole_radius_layout.addStretch()
+        params_layout.addLayout(hole_radius_layout)
 
         #深径比
         depth_layout = QHBoxLayout()

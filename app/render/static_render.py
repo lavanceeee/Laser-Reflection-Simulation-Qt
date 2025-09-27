@@ -1,5 +1,5 @@
 from PyQt6.QtGui import QPen, QColor, QPainterPath
-from PyQt6.QtCore import QPointF
+from PyQt6.QtCore import QRectF, QPointF
 from app.algorithm.points_equation import GaussianEquation
 
 class StaticRender:
@@ -18,13 +18,12 @@ class StaticRender:
         logical_height = painter.window().height()
 
         hole_center_x = logical_width * 0.6  # 60%位置
-        hole_center_y = logical_height * 0.5  # 50%位置
+        hole_center_y = logical_height * 0.5 - scene_model.mu # 50%位置
     
         points = GaussianEquation.calculate_gaussian_points(
             hole_center_x,
             hole_center_y,
-            scene_model.laser_radius,
-            scene_model.depth_ratio
+            scene_model
         )
 
         #抗锯齿
@@ -40,12 +39,13 @@ class StaticRender:
 
             painter.drawPath(path)
 
+    # 绘制半径
     def _draw_laser_radius(self, painter, scene_model):
         logical_width = painter.window().width()
         logical_height = painter.window().height()
 
         laser_center_x = logical_width * 0.55
-        laser_center_y = logical_height * 0.5
+        laser_center_y = logical_height * 0.5 
 
         laser_radius = scene_model.laser_radius
 
@@ -58,7 +58,7 @@ class StaticRender:
         start_y = laser_center_y - laser_radius
         end_y = laser_center_y + laser_radius
 
-        painter.setPen(QPen(QColor(255, 0, 0), 1))
+        painter.setPen(QPen(QColor(0, 0, 0), 0))  # 灰色
 
         painter.drawLine(
             QPointF(laser_center_x, start_y),
@@ -75,16 +75,23 @@ class StaticRender:
         laser_radius = scene_model.laser_radius
 
         #将数值映射到坐标轴
-        position_ratio = (scene_model.laser_position - 1) / 49  # 0-1范围
-        y_offset = (position_ratio - 0.5) * 2 * laser_radius    # -radius 到 +radius
-        laser_y = laser_center_y + y_offset
+        laser_y = laser_center_y - laser_radius + scene_model.laser_position
 
         #更新激光坐标
         scene_model.laser_pos = (laser_center_x, laser_y)
 
         # 绘制激光位置点
-        painter.setPen(QPen(QColor(0, 255, 0), 0))
-        painter.drawPoint(QPointF(laser_center_x, laser_y))
+        painter.setPen(QPen(QColor(255, 0, 0), 0))
+        painter.setBrush(QColor(255, 0, 0))
+
+        inner_radius = 0.2
+        inner_rect = QRectF(laser_center_x - inner_radius, laser_y - inner_radius,
+                            inner_radius * 2, inner_radius * 2)
+
+        painter.drawEllipse(inner_rect)
+
+        # 重置brush，透明
+        painter.setBrush(QColor(0, 0, 0, 0))
 
         #激光样式
         self._draw_laser_device(painter, laser_center_x, laser_y)
