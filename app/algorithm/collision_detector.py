@@ -20,24 +20,22 @@ class CollisionDetector:
         logical_height = scene_model.canvas_height
 
         center_x = logical_width * 0.6
-        center_y = logical_height * 0.5
+        # fix: 修正mu
+        center_y = logical_height * 0.5 - scene_model.mu
 
-        beam_radius = scene_model.laser_radius
-        depth_ratio = scene_model.depth_ratio
-
-        sigma = 20
-        A = depth_ratio * beam_radius
-        mu = 0
+        # beam_radius = scene_model.laser_radius
+        # hole_radius = scene_model.hole_radius
+        # depth_ratio = scene_model.depth_ratio
 
         def equation(t):
-            gaussian_x = center_x + A * math.exp(-((t - mu) ** 2) / (2 * sigma ** 2))
+            gaussian_x = center_x + scene_model.gaussian_equation(t)
             gaussian_y = center_y + t
             laser_y = laser_func_k * gaussian_x + laser_func_b
 
             return gaussian_y - laser_y 
 
-        t_start = -1.5 * sigma
-        t_end = 1.5 * sigma
+        t_start = scene_model.mu - scene_model.hole_radius
+        t_end = scene_model.mu + scene_model.hole_radius
 
         initial_guess = np.linspace(t_start, t_end, 30)
 
@@ -53,7 +51,7 @@ class CollisionDetector:
 
             #结果有效性
             if t_start <= t_solution <= t_end and abs(equation(t_solution)) <= 1e-6: 
-                x = center_x + A * math.exp(-(t_solution - mu) ** 2 / (2 * sigma ** 2)) 
+                x = center_x + scene_model.gaussian_equation(t_solution)
                 y = center_y + t_solution
 
                 # 核心修复：检查找到的交点是否与当前点距离过近，防止无限递归
@@ -72,13 +70,11 @@ class CollisionDetector:
                 closest = min(all_intersections, key=lambda p: p[0])
             else:
                 closest = max(all_intersections, key=lambda p: p[0])
-
             return {
                 'collision': True,
                 'point': closest
             }
         else:
-            
             return {
                 'collision': False
             }

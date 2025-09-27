@@ -1,6 +1,4 @@
 import math
-
-from numpy.random import normal
 """
 更新激光的函数
 
@@ -18,7 +16,8 @@ class UpdateLaser:
         #入射光线的斜率
         incident_slope = scene_model.current_segment['path_function']['k']
 
-        center_y = scene_model.canvas_height * 0.5
+        # fix: 补偿mu偏移量
+        center_y = scene_model.canvas_height * 0.5 - scene_model.mu
         t = current_pos_y - center_y
 
         #该点处的斜率

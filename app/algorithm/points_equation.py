@@ -1,31 +1,25 @@
 import math
+import numpy as np
+from app.core.scene_model import SceneModel
 
 class GaussianEquation:
-
     @staticmethod
-    def calculate_gaussian_points(center_x, center_y, beam_radius, depth_ratio):
-        
+    def calculate_gaussian_points(center_x, center_y, scene_model):
         points = []
 
-        sigma = 20
-        A = depth_ratio * beam_radius
-        mu = 0
+        mu = scene_model.mu
+        hole_radius = scene_model.hole_radius
 
-        x_start = - 1.5 * sigma
-        x_end =  1.5 * sigma
-        step = 0.5
+        x_start = mu - hole_radius
+        x_end =  mu + hole_radius
 
-        x = x_start
-        while x <= x_end:
-            
-            exponent = -((x - mu) ** 2) / (2 * sigma ** 2)
-            gaussian_value = A * math.exp(exponent)
+        # laser beams
+        x_values = np.linspace(x_start, x_end, 10000)
 
-            screen_x = center_x + gaussian_value
-            screen_y = center_y + x
+        gaussian_values = scene_model.gaussian_equation(x_values)
+        screen_x_values = center_x + gaussian_values
+        screen_y_values = center_y + x_values
 
-            points.append((screen_x, screen_y))
-
-            x += step
+        points = list(zip(screen_x_values, screen_y_values))
 
         return points
