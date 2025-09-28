@@ -1,3 +1,6 @@
+# Author: lavance
+# Blog: https://2jone.top
+
 import sys
 from PyQt6.QtWidgets import QApplication
 from app.windows.main_window import MainWindow

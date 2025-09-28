@@ -19,7 +19,6 @@ class SceneModel:
         
         self.A = self.mms / (self.sigma * np.sqrt(2 * np.pi))
 
-
         #激光点坐标
         self.laser_pos = (0, 0)
         self.is_firing = False
