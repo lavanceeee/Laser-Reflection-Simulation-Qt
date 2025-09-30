@@ -59,17 +59,25 @@ class CanvasWidget(QWidget):
 
         self.dynamic_render.render_laser_firing(painter, self.scene_model)
 
-        #切线
+        # 切线
         self.function_render.render_tangent_line(painter, self.scene_model)
         
         # 法线
         self.function_render.render_normal_line(painter, self.scene_model)
 
-        # # 添加到 paintEvent 的最后
+        # 添加到 paintEvent 的最后
         # TestRender.draw_current_laser_line(painter, self.scene_model)
         painter.restore()
 
-    #鼠标缩放事件
+    # window resize event
+    # fix(currently): Mismatch issue caused by window size switching during path drawing   
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if self.scene_model.is_firing:
+            self.scene_model.reset_model()
+            self.update()
+
+    # 鼠标缩放事件
     def wheelEvent(self, event):
 
         mouse_pos = event.position()
