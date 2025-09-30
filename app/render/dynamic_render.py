@@ -26,7 +26,7 @@ class DynamicRender:
         for point in points[1:]:
             path.lineTo(QPointF(point[0], point[1]))
 
-        pen = QPen(QColor(255, 0, 0), 1)
+        pen = QPen(QColor(101, 184, 105), 1)
 
         painter.setPen(pen)
         painter.drawPath(path)
@@ -44,3 +44,4 @@ class DynamicRender:
             rect = QRectF(point_x - point_radius, point_y - point_radius, 
                         point_radius * 2, point_radius * 2)
             painter.drawEllipse(rect)
+
