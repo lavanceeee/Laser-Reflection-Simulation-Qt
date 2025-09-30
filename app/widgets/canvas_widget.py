@@ -219,8 +219,6 @@ class CanvasWidget(QWidget):
 
             print("结束")
 
-
-
     def _draw_exit_ray(self):
         """绘制出射线"""
         last_point = self.scene_model.laser_path[-1]

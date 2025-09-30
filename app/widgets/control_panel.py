@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget, QSpinBox, QPushButton
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QTableWidget, QHeaderView, QVBoxLayout, QWidget, QSpinBox, QPushButton
 from PyQt6.QtCore import pyqtSignal
 
 class ControlPanel(QWidget):
@@ -19,11 +19,14 @@ class ControlPanel(QWidget):
     def _setup_ui(self):
         main_layout = QHBoxLayout(self)
         
-        # 左侧
+        # paramter selector and result area 
+        left_main_widget = QWidget()
+        left_main_layout = QHBoxLayout(left_main_widget)
+
         params_widget = QWidget()
         params_layout = QVBoxLayout(params_widget)
         
-        #激光半径
+        # laser_radius
         beam_layout = QHBoxLayout()
         beam_layout.addWidget(QLabel("激光半径："))
         self.beam_radius = QSpinBox()
@@ -33,7 +36,7 @@ class ControlPanel(QWidget):
         beam_layout.addStretch() 
         params_layout.addLayout(beam_layout)
 
-        #新增：孔洞半径
+        # hole_radius
         hole_radius_layout = QHBoxLayout()
         hole_radius_layout.addWidget(QLabel("孔洞半径："))
         self.hole_radius = QSpinBox()
@@ -43,9 +46,9 @@ class ControlPanel(QWidget):
         hole_radius_layout.addStretch()
         params_layout.addLayout(hole_radius_layout)
 
-        #深径比
+        #depth_ratio
         depth_layout = QHBoxLayout()
-        depth_layout.addWidget(QLabel("深径比："))
+        depth_layout.addWidget(QLabel("深径比(孔洞深度h/半径r)："))
         self.depth_ratio = QSpinBox()
         self.depth_ratio.setValue(2)
         self.depth_ratio.valueChanged.connect(self.depth_ratio_changed.emit)
@@ -53,7 +56,7 @@ class ControlPanel(QWidget):
         depth_layout.addStretch()
         params_layout.addLayout(depth_layout)
 
-        #激光入射坐标
+        # laser_position
         position_layout = QHBoxLayout()
         position_layout.addWidget(QLabel("入射坐标："))
         self.laser_pos = QSpinBox()
@@ -62,6 +65,63 @@ class ControlPanel(QWidget):
         position_layout.addWidget(self.laser_pos)
         position_layout.addStretch()
         params_layout.addLayout(position_layout)
+
+        # right result panel of left_main_layout
+        result_widget = QWidget()
+        result_layout = QVBoxLayout(result_widget)
+
+        # create table
+        self.reflection_table = QTableWidget()
+        self.reflection_table.setColumnCount(4)
+        self.reflection_table.setHorizontalHeaderLabels(["index", "Angle", "Absorptivity", "Reflectivity"])
+        
+        # Table style
+        self.reflection_table.setStyleSheet("""
+            QTableWidget {
+                background-color: white;
+                border: 1px solid #ddd;
+                gridline-color: #e0e0e0;
+                font-size: 12px;
+            }
+            QTableWidget::item {
+                padding: 5px;
+                border-bottom: 1px solid #f0f0f0;
+            }
+            QTableWidget::item:selected {
+                background-color: #e3f2fd;
+                color: #1976d2;
+            }
+            QHeaderView::section {
+                background-color: #f5f5f5;
+                padding: 8px;
+                border: none;
+                border-bottom: 2px solid #ddd;
+                font-weight: bold;
+                color: #555;
+            }
+        """)
+        
+        # Column width settings
+        header = self.reflection_table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
+        self.reflection_table.setColumnWidth(0, 60)  # 标号列固定宽度
+
+        # disable editing
+        self.reflection_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+
+        # center align
+        self.reflection_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+
+        result_layout.addWidget(self.reflection_table)
+
+        # add two widget to left_main_layout
+        left_main_layout.addWidget(params_widget, 1)
+        left_main_layout.addWidget(result_widget, 3)
+
+        # ------
         
         # 右侧
         button_widget = QWidget()
@@ -69,78 +129,21 @@ class ControlPanel(QWidget):
         
         # 激光控制按钮
         self.fire_button = QPushButton("开始")
-        self.fire_button.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
-                border: none;
-                padding: 12px 24px;
-                border-radius: 6px;
-                font-weight: bold;
-                font-size: 14px;
-                min-width: 80px;
-            }
-            QPushButton:hover {
-                background-color: #45a049;
-            }
-            QPushButton:pressed {
-                background-color: #FF5722;
-            }
-        """)
 
         #清空显示台
         self.clear_display_button = QPushButton("清空显示台")
-        self.clear_display_button.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
-                border: none;
-                padding: 12px 24px;
-                border-radius: 6px;
-                font-weight: bold;
-                font-size: 14px;
-                min-width: 80px;
-            }
-            QPushButton:hover {
-                background-color: #45a049;
-            }
-            QPushButton:pressed {
-                background-color: #FF5722;
-            }
-        """)
 
         self.fire_button.clicked.connect(self._on_fire_button_clicked)
         self.clear_display_button.clicked.connect(self._on_clear_display_button_clicked)
 
         button_layout.addWidget(self.fire_button)
         button_layout.addWidget(self.clear_display_button)
-        button_layout.addStretch()  # 按钮顶部对齐
+        button_layout.addStretch() 
         
-        main_layout.addWidget(params_widget, 3)  # 左侧占3份
-        main_layout.addWidget(button_widget, 1)  # 右侧占1份
-
-        # # 激光发射状态
-        # self.is_firing = False
+        main_layout.addWidget(left_main_widget, 5) 
+        main_layout.addWidget(button_widget, 1) 
 
     def _on_fire_button_clicked(self):
-        # if not self.is_firing:
-            # 开始发射
-            # self.is_firing = True
-            # self.fire_button.setStyleSheet("""
-            #     QPushButton {
-            #         background-color: #FF5722;
-            #         color: white;
-            #         border: none;
-            #         padding: 12px 24px;
-            #         border-radius: 6px;
-            #         font-weight: bold;
-            #         font-size: 14px;
-            #         min-width: 80px;
-            #     }
-            #     QPushButton:hover {
-            #         background-color: #E64A19;
-            #     }
-            # """)
             self.laser_fire_started.emit()
 
     def _on_clear_display_button_clicked(self):

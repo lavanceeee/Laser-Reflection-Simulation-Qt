@@ -65,7 +65,7 @@ class FunctionRender:
             else:
                 # 法线斜率 = -1/切线斜率
                 normal_k = -1 / tangent_k
-                line_length = 10
+                line_length = 5
                 dx = line_length
                 dy = normal_k * dx
                 

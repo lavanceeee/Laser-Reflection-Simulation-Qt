@@ -2,6 +2,9 @@ import numpy as np
 
 class SceneModel:
     def __init__(self):
+        # 画布宽高
+        self.canvas_width = 0
+        self.canvas_height = 0
 
         self.laser_radius = 25
 
@@ -19,10 +22,29 @@ class SceneModel:
         
         self.A = self.mms / (self.sigma * np.sqrt(2 * np.pi))
 
-        #激光点坐标
+        # laser position
         self.laser_pos = (0, 0)
+
         self.is_firing = False
+
         self.laser_path = []
+
+        self.incident_angle = []
+
+        self.current_energy = 100.0
+
+        self.reflection_data = [] # {        self.laser_path = []
+
+        self.incident_angle = []
+        
+        # Energy tracking
+        self.current_energy = 100.0  # Initial energy 100%
+        
+        """
+        Reflection data for table display
+        List of dict: {index, angle, absorptivity, reflectivity, remaining_energy}
+        """
+        self.reflection_data = []
 
         #每一段光线路径
         self.current_segment = {
@@ -35,17 +57,14 @@ class SceneModel:
             'segment_id': 0
         }
 
-        #画布宽高
-        self.canvas_width = 0
-        self.canvas_height = 0
-        
         # 切线斜率
         self.tangent_slopes = []
 
+    # hole's gaussian equation
     def gaussian_equation(self, t):
         return  self.A * np.exp(-((t - self.mu) ** 2) / (2 * self.sigma ** 2))
 
-    #求导函数
+    # 导函数
     def gaussian_derivative(self, t):
         return -self.A * (t - self.mu) / (self.sigma ** 2) * np.exp(-((t - self.mu) ** 2) / (2 * self.sigma ** 2))
 
@@ -56,7 +75,7 @@ class SceneModel:
 
         self.is_firing = False
 
-        #坑：忘记更新直线为水平了
+        # fix：更新直线为水平
         self.current_segment = {
             'toward_right': True,
             'step_size': 3,

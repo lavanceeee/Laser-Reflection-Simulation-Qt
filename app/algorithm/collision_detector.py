@@ -23,10 +23,6 @@ class CollisionDetector:
         # fix: 修正mu
         center_y = logical_height * 0.5 - scene_model.mu
 
-        # beam_radius = scene_model.laser_radius
-        # hole_radius = scene_model.hole_radius
-        # depth_ratio = scene_model.depth_ratio
-
         def equation(t):
             gaussian_x = center_x + scene_model.gaussian_equation(t)
             gaussian_y = center_y + t
