@@ -33,18 +33,9 @@ class SceneModel:
 
         self.current_energy = 100.0
 
-        self.reflection_data = [] # {        self.laser_path = []
+        self.reflection_data = [] 
 
         self.incident_angle = []
-        
-        # Energy tracking
-        self.current_energy = 100.0  # Initial energy 100%
-        
-        """
-        Reflection data for table display
-        List of dict: {index, angle, absorptivity, reflectivity, remaining_energy}
-        """
-        self.reflection_data = []
 
         #每一段光线路径
         self.current_segment = {
@@ -85,5 +76,10 @@ class SceneModel:
             },
             'segment_id': 0
         }
+
+        # clear table data
+        self.reflection_data = []
+        self.incident_angle = []
+        self.current_energy = 100.0
 
 

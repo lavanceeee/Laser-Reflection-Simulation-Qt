@@ -11,11 +11,16 @@ class AbsorptivityRate:
         self.extinction_coefficient = 0.061005
 
     def absorptivity_rate_calcuate(self, incident_angle_rad):
-        
         n_magnitude = math.sqrt(
             self.refractive_index ** 2 +
             self.extinction_coefficient ** 2
         )
+
+
+        print(f"----------{incident_angle_rad}---------")
+
+        if incident_angle_rad > math.pi / 2.0:
+            incident_angle_rad = math.pi - incident_angle_rad
 
         sin_reflective = math.sin(incident_angle_rad) / n_magnitude
         reflective_angle_rad = math.asin(sin_reflective)
@@ -27,13 +32,12 @@ class AbsorptivityRate:
 
         Rp = (
             (math.cos(reflective_angle_rad) - self.refractive_index * math.cos(incident_angle_rad)) / 
-            (math.cos(reflective_angle_rad) + self.reflection_angle * math.cos(incident_angle_rad))
+            (math.cos(reflective_angle_rad) + self.refractive_index * math.cos(incident_angle_rad))
             ) ** 2
 
         R = (Rs + Rp) / 2
 
         A = 1 - R
 
-        print(A, R)
-
+        print("本次计算吸收率和反射率的值为", A, R)
         return A, R

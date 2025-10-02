@@ -40,6 +40,11 @@ class MainWindow(QMainWindow):
 
         #清空显示台
         self.control_panel.clear_display.connect(self._on_clear_display)
+
+        # 更新table信号
+        self.canvas.reflection_data_update_signal.connect(self.control_panel.add_reflection_data)
+
+        self.canvas.clear_table_signal.connect(self.control_panel.clear_table)
         
     #参数变化
     def _on_beam_radius_changed(self, radius):

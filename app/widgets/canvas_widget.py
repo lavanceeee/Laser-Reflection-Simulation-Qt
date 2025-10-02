@@ -1,27 +1,33 @@
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtGui import QPainter, QColor
-from PyQt6.QtCore import Qt
-from app.core import scene_model
+from PyQt6.QtCore import Qt, pyqtSignal
 from app.core.scene_model import SceneModel
 from app.render.static_render import StaticRender
 from app.render.dynamic_render import DynamicRender
 from app.algorithm.next_pos import NextPosition
 from app.algorithm.update_laser_direction import UpdateLaser
 from app.render.function_render import FunctionRender
+from app.core.energy_tracker import EnergyTracker
 
 class CanvasWidget(QWidget):
+    # update table signal
+    reflection_data_update_signal = pyqtSignal(dict)
+    # clear table signal
+    clear_table_signal = pyqtSignal()
+
     def __init__(self):
         super().__init__()
 
-        #loading default paramter
+        # loading default paramter
         self.scene_model = SceneModel()
         self.next_position = NextPosition()
 
         self.static_render = StaticRender()
         self.dynamic_render = DynamicRender()
         self.function_render = FunctionRender()
+        self.energy_tracker = EnergyTracker()
 
-        #缩放
+        # 缩放
         self.scale_factor = 1.0
         self.min_scale = 0.1
         self.max_scale = 50.0
@@ -34,11 +40,11 @@ class CanvasWidget(QWidget):
         self.drag_start_x = 0
         self.drag_start_y = 0
 
-    #绘制静态画面
+    # 绘制静态画面
     def paintEvent(self, event):
         painter = QPainter(self)
 
-        #更新model宽高
+        # 更新model宽高
         self.scene_model.canvas_width = painter.window().width()
         self.scene_model.canvas_height = painter.window().height()
 
@@ -79,7 +85,6 @@ class CanvasWidget(QWidget):
 
     # 鼠标缩放事件
     def wheelEvent(self, event):
-
         mouse_pos = event.position()
         mouse_x = mouse_pos.x()
         mouse_y = mouse_pos.y()
@@ -140,6 +145,8 @@ class CanvasWidget(QWidget):
         # clear path if already draw
         if self.scene_model.is_firing:
             self.scene_model.reset_model()
+            # 清空table
+            self.clear_table_signal.emit()
             self.update()
             
         self.scene_model.laser_radius = radius
@@ -149,6 +156,8 @@ class CanvasWidget(QWidget):
         # clear path if already draw
         if self.scene_model.is_firing:
             self.scene_model.reset_model()
+            # 清空table
+            self.clear_table_signal.emit()
             self.update()
 
         self.scene_model.hole_radius = hole_radius
@@ -158,6 +167,8 @@ class CanvasWidget(QWidget):
         # clear path if already draw
         if self.scene_model.is_firing:
             self.scene_model.reset_model()
+            # 清空table
+            self.clear_table_signal.emit()
             self.update()
 
         self.scene_model.depth_ratio = ratio
@@ -168,17 +179,17 @@ class CanvasWidget(QWidget):
 
     # update laser position
     def set_laser_position(self, position):
-
         # clear path if already draw
         if self.scene_model.is_firing:
             self.scene_model.reset_model()
+            # 清空table
+            self.clear_table_signal.emit()
             self.update()
             
         self.scene_model.laser_position = position
         self.update()
 
     def start_laser_firing(self):
-
         # reset model parameter
         if self.scene_model.is_firing:
             self.scene_model.reset_model()
@@ -193,28 +204,38 @@ class CanvasWidget(QWidget):
 
         #计算交点并绘图
         self._update_laser_step()
-
         self.update()
-    
+
     def _update_laser_step(self):
         if not self.scene_model.is_firing:
             return
-
         current_position = self.scene_model.laser_path[-1]
-
         result_point = self.next_position.calcuate_next_pos(current_position, self.scene_model)
 
         if result_point is not None:
             self.scene_model.laser_path.append(result_point)
             self.update()
 
-            #更新segment片段信息
+            # update segment info
             UpdateLaser.update_laser(self.scene_model)
 
-            #递归调用更新
+            # calcuate energy result
+            if self.scene_model.incident_angle:
+                latest_angle = self.scene_model.incident_angle[-1]
+                self.energy_tracker.calcuate_and_record(
+                    self.scene_model,
+                    latest_angle
+                )
+
+            # update reflection table
+            if self.scene_model.reflection_data:
+                latest_data = self.scene_model.reflection_data[-1]
+                self.reflection_data_update_signal.emit(latest_data)
+                
+            # 递归调用更新
             self._update_laser_step()
         else:
-            #最后绘制一次尾函数出射
+            # 最后绘制一次尾函数出射
             self._draw_exit_ray()
 
             print("结束")
@@ -236,15 +257,13 @@ class CanvasWidget(QWidget):
         self.scene_model.laser_path.append((exit_x, exit_y))
         self.update()
 
-    #清空显示台
+    # 清空显示台
     def clear_display(self):
         self.scene_model.laser_path = []
-
         self.scene_model.tangent_slopes = []
-
         self.scene_model.is_firing = False
 
-        #坑：忘记更新直线为水平了
+        # fix：忘记更新直线为水平了
         self.scene_model.current_segment = {
             'toward_right': True,
             'step_size': 3,
@@ -254,5 +273,5 @@ class CanvasWidget(QWidget):
             },
             'segment_id': 0
         }
-
         self.update()
+

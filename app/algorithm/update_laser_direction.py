@@ -39,7 +39,7 @@ class UpdateLaser:
             #法线的斜率
             normal_slope = -1/k
             
-        reflection_slope = UpdateLaser._calculate_reflection_slope(incident_slope, normal_slope)
+        reflection_slope = UpdateLaser._calculate_reflection_slope(scene_model, incident_slope, normal_slope)
 
         scene_model.current_segment['path_function']['k'] = reflection_slope
 
@@ -47,12 +47,10 @@ class UpdateLaser:
 
         scene_model.current_segment['path_function']['b'] = b
 
-        #确定朝哪个方向运动
-
-        #法线朝左的方向向量
-        n_vector = (-1, -normal_slope)
-        #激光朝右的方向向量
-        v_vector = (1, reflection_slope)
+        # #法线朝左的方向向量
+        # n_vector = (-1, -normal_slope)
+        # #激光朝右的方向向量
+        # v_vector = (1, reflection_slope)
 
         #点积判断两者的夹角大小
         dot_product = -1 + -normal_slope * reflection_slope
@@ -67,17 +65,7 @@ class UpdateLaser:
         scene_model.current_segment['segment_id'] += 1
 
     @staticmethod
-    def _calculate_reflection_slope(incident_slope, normal_slope):
-
-        # k1 = incident_slope
-        # k2 = normal_slope
-
-        # numerator = 2 * k2 + k1 * k2 ** 2 - k1;
-        # denominator = 1 + 2 * k1 * k2 - k2 ** 2;
-        # k3 =numerator / denominator;
-
-        # return k3
-
+    def _calculate_reflection_slope(scene_model, incident_slope, normal_slope):
         #角度转为弧度
         incident_angle = math.atan(incident_slope)
         normal_angle = math.atan(normal_slope)
@@ -86,7 +74,7 @@ class UpdateLaser:
         relative_incident_angle = incident_angle - normal_angle
 
         # record absolute value of incident angle into array
-        self.scene_model.incident_angle.append(abs(relative_incident_angle))
+        scene_model.incident_angle.append(abs(relative_incident_angle))
 
         #反射角 = -入射角
         relative_reflection_angle = -relative_incident_angle

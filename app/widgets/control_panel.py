@@ -2,14 +2,12 @@ from PyQt6.QtWidgets import QHBoxLayout, QLabel, QTableWidget, QHeaderView, QVBo
 from PyQt6.QtCore import pyqtSignal
 
 class ControlPanel(QWidget):
-
     beam_radius_changed = pyqtSignal(int)
     depth_ratio_changed = pyqtSignal(int)
     laser_position_changed = pyqtSignal(int)
     laser_fire_started = pyqtSignal()
     clear_display = pyqtSignal()
     hole_radius_changed = pyqtSignal(int)
-
 
     def __init__(self):
         super().__init__()
@@ -46,7 +44,7 @@ class ControlPanel(QWidget):
         hole_radius_layout.addStretch()
         params_layout.addLayout(hole_radius_layout)
 
-        #depth_ratio
+        # depth_ratio
         depth_layout = QHBoxLayout()
         depth_layout.addWidget(QLabel("深径比(孔洞深度h/半径r)："))
         self.depth_ratio = QSpinBox()
@@ -66,14 +64,14 @@ class ControlPanel(QWidget):
         position_layout.addStretch()
         params_layout.addLayout(position_layout)
 
-        # right result panel of left_main_layout
+        # result panel 
         result_widget = QWidget()
         result_layout = QVBoxLayout(result_widget)
 
         # create table
         self.reflection_table = QTableWidget()
-        self.reflection_table.setColumnCount(4)
-        self.reflection_table.setHorizontalHeaderLabels(["index", "Angle", "Absorptivity", "Reflectivity"])
+        self.reflection_table.setColumnCount(3)
+        self.reflection_table.setHorizontalHeaderLabels(["入射角", "吸收率", "当前能量"])
         
         # Table style
         self.reflection_table.setStyleSheet("""
@@ -103,11 +101,10 @@ class ControlPanel(QWidget):
         
         # Column width settings
         header = self.reflection_table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
-        self.reflection_table.setColumnWidth(0, 60)  # 标号列固定宽度
+        self.reflection_table.setColumnWidth(0, 40)  # 标号列固定宽度
 
         # disable editing
         self.reflection_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
@@ -148,3 +145,47 @@ class ControlPanel(QWidget):
 
     def _on_clear_display_button_clicked(self):
         self.clear_display.emit()
+    
+    def add_reflection_data(self, data):
+        """
+        Add reflection data to table (called via signal from canvas)
+        
+        Args:
+            data: Dictionary with keys: index, angle, absorptivity, remaining_energy
+        """
+        import math
+        from PyQt6.QtWidgets import QTableWidgetItem
+        from PyQt6.QtCore import Qt
+        
+        # Extract data
+        index = data['index']
+        angle_rad = data['angle']
+        absorptivity = data['absorptivity']
+        remaining_energy = data['remaining_energy']
+        
+        # Convert to display format
+        angle_degrees = math.degrees(angle_rad)
+        absorptivity_percent = absorptivity * 100
+        
+        # Add new row
+        row_count = self.reflection_table.rowCount()
+        self.reflection_table.insertRow(row_count)
+        
+        # Column 0: Incident angle
+        angle_item = QTableWidgetItem(f"{angle_degrees:.2f}°")
+        angle_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.reflection_table.setItem(row_count, 0, angle_item)
+        
+        # Column 1: Absorptivity
+        absorption_item = QTableWidgetItem(f"{absorptivity_percent:.2f}%")
+        absorption_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.reflection_table.setItem(row_count, 1, absorption_item)
+        
+        # Column 2: Remaining energy
+        energy_item = QTableWidgetItem(f"{remaining_energy:.2f}%")
+        energy_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.reflection_table.setItem(row_count, 2, energy_item)
+
+    def clear_table(self):
+        self.reflection_table.setRowCount(0)
+        self.reflection_table.scrollToTop()
