@@ -11,9 +11,7 @@ class EnergyTracker:
         absorbed_energy = scene_model.current_energy * A
         scene_model.current_energy *= R
 
-        reflection_index = len(scene_model.reflection_data) + 1
         scene_model.reflection_data.append({
-            'index': reflection_index,
             'angle': incident_angle_rad,
             'absorptivity': A,
             'remaining_energy': scene_model.current_energy,

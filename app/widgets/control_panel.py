@@ -157,8 +157,6 @@ class ControlPanel(QWidget):
         from PyQt6.QtWidgets import QTableWidgetItem
         from PyQt6.QtCore import Qt
         
-        # Extract data
-        index = data['index']
         angle_rad = data['angle']
         absorptivity = data['absorptivity']
         remaining_energy = data['remaining_energy']

@@ -73,14 +73,16 @@ class UpdateLaser:
         #相对于法线入射角大小
         relative_incident_angle = incident_angle - normal_angle
 
-        # record absolute value of incident angle into array
-        scene_model.incident_angle.append(abs(relative_incident_angle))
-
         #反射角 = -入射角
         relative_reflection_angle = -relative_incident_angle
 
         #反射光线的绝对角度
         reflection_angle = normal_angle + relative_reflection_angle
+
+        # record absolute value of incident angle into array
+        if relative_incident_angle > math.pi / 2.0:
+            relative_incident_angle = math.pi - relative_incident_angle
+        scene_model.incident_angle.append(abs(relative_incident_angle))
 
         #转回斜率
         return math.tan(reflection_angle)

@@ -51,23 +51,18 @@ class MainWindow(QMainWindow):
         self.canvas.set_beam_radius(radius)
 
     def _on_depth_ratio_changed(self, ratio):
-
         self.canvas.set_depth_ratio(ratio)
 
     def _on_hole_radius_changed(self, radius):
         self.canvas.set_hole_radius(radius)
 
-    #关键的地方
     def _on_laser_position_changed(self, position):
-
         self.canvas.set_laser_position(position)
 
     def _on_laser_fire_started(self):
-
         self.canvas.start_laser_firing()
 
     def _on_clear_display(self):
-
         self.canvas.clear_display()
 
 

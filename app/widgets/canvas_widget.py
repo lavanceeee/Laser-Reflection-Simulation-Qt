@@ -8,6 +8,9 @@ from app.algorithm.next_pos import NextPosition
 from app.algorithm.update_laser_direction import UpdateLaser
 from app.render.function_render import FunctionRender
 from app.core.energy_tracker import EnergyTracker
+from app.core.label_manager import LabelManager
+from app.render.label_renderer import LabelRenderer
+from app.utils.decorators import reset_before_update
 
 class CanvasWidget(QWidget):
     # update table signal
@@ -26,6 +29,9 @@ class CanvasWidget(QWidget):
         self.dynamic_render = DynamicRender()
         self.function_render = FunctionRender()
         self.energy_tracker = EnergyTracker()
+
+        self.label_manager = LabelManager()
+        self.label_renderer = LabelRenderer()
 
         # 缩放
         self.scale_factor = 1.0
@@ -70,6 +76,8 @@ class CanvasWidget(QWidget):
         
         # 法线
         self.function_render.render_normal_line(painter, self.scene_model)
+
+        self.label_renderer.render_labels(painter, self.label_manager.labels)
 
         # 添加到 paintEvent 的最后
         # TestRender.draw_current_laser_line(painter, self.scene_model)
@@ -141,60 +149,30 @@ class CanvasWidget(QWidget):
             self.is_dragging = False
             self.setCursor(Qt.CursorShape.ArrowCursor)
 
+    @reset_before_update
     def set_beam_radius(self, radius):
-        # clear path if already draw
-        if self.scene_model.is_firing:
-            self.scene_model.reset_model()
-            # 清空table
-            self.clear_table_signal.emit()
-            self.update()
-            
         self.scene_model.laser_radius = radius
         self.update()
 
+    @reset_before_update
     def set_hole_radius(self, hole_radius):
-        # clear path if already draw
-        if self.scene_model.is_firing:
-            self.scene_model.reset_model()
-            # 清空table
-            self.clear_table_signal.emit()
-            self.update()
-
         self.scene_model.hole_radius = hole_radius
         self.update()
-
+    
+    @reset_before_update
     def set_depth_ratio(self, ratio):
-        # clear path if already draw
-        if self.scene_model.is_firing:
-            self.scene_model.reset_model()
-            # 清空table
-            self.clear_table_signal.emit()
-            self.update()
-
         self.scene_model.depth_ratio = ratio
-
         #坑：忘记更新A的参数
         self.scene_model.A = ratio * self.scene_model.laser_radius
         self.update()
 
-    # update laser position
-    def set_laser_position(self, position):
-        # clear path if already draw
-        if self.scene_model.is_firing:
-            self.scene_model.reset_model()
-            # 清空table
-            self.clear_table_signal.emit()
-            self.update()
-            
+    @reset_before_update
+    def set_laser_position(self, position): 
         self.scene_model.laser_position = position
         self.update()
 
+    @reset_before_update
     def start_laser_firing(self):
-        # reset model parameter
-        if self.scene_model.is_firing:
-            self.scene_model.reset_model()
-            self.update()
-        
         start_pos = self.scene_model.laser_pos
         self.scene_model.is_firing = True
         self.scene_model.laser_path = [start_pos]
@@ -209,6 +187,7 @@ class CanvasWidget(QWidget):
     def _update_laser_step(self):
         if not self.scene_model.is_firing:
             return
+
         current_position = self.scene_model.laser_path[-1]
         result_point = self.next_position.calcuate_next_pos(current_position, self.scene_model)
 
@@ -230,14 +209,16 @@ class CanvasWidget(QWidget):
             # update reflection table
             if self.scene_model.reflection_data:
                 latest_data = self.scene_model.reflection_data[-1]
+
+                anchor_point = self.scene_model.laser_path[-1]
+                self.label_manager.add_label(anchor_point, latest_data)
+
                 self.reflection_data_update_signal.emit(latest_data)
-                
             # 递归调用更新
             self._update_laser_step()
         else:
             # 最后绘制一次尾函数出射
             self._draw_exit_ray()
-
             print("结束")
 
     def _draw_exit_ray(self):
@@ -258,11 +239,8 @@ class CanvasWidget(QWidget):
         self.update()
 
     # 清空显示台
+    @reset_before_update
     def clear_display(self):
-        self.scene_model.laser_path = []
-        self.scene_model.tangent_slopes = []
-        self.scene_model.is_firing = False
-
         # fix：忘记更新直线为水平了
         self.scene_model.current_segment = {
             'toward_right': True,

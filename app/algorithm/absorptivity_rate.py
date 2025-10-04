@@ -16,12 +16,6 @@ class AbsorptivityRate:
             self.extinction_coefficient ** 2
         )
 
-
-        print(f"----------{incident_angle_rad}---------")
-
-        if incident_angle_rad > math.pi / 2.0:
-            incident_angle_rad = math.pi - incident_angle_rad
-
         sin_reflective = math.sin(incident_angle_rad) / n_magnitude
         reflective_angle_rad = math.asin(sin_reflective)
 
@@ -39,5 +33,4 @@ class AbsorptivityRate:
 
         A = 1 - R
 
-        print("本次计算吸收率和反射率的值为", A, R)
         return A, R
