@@ -156,14 +156,12 @@ class CanvasWidget(QWidget):
 
     @reset_before_update
     def set_hole_radius(self, hole_radius):
-        self.scene_model.hole_radius = hole_radius
+        self.scene_model.set_hole_radius(hole_radius)
         self.update()
     
     @reset_before_update
     def set_depth_ratio(self, ratio):
-        self.scene_model.depth_ratio = ratio
-        #坑：忘记更新A的参数
-        self.scene_model.A = ratio * self.scene_model.laser_radius
+        self.scene_model.set_depth_ratio(ratio)
         self.update()
 
     @reset_before_update
@@ -180,46 +178,79 @@ class CanvasWidget(QWidget):
         #更新初始坐标
         self.scene_model.current_segment['path_function']['b'] = start_pos[1]
 
-        #计算交点并绘图
-        self._update_laser_step()
-        self.update()
+        self._calcuate_complete_path()
 
-    def _update_laser_step(self):
-        if not self.scene_model.is_firing:
-            return
+        self.dynamic_render.start_animation(self.update)
 
-        current_position = self.scene_model.laser_path[-1]
-        result_point = self.next_position.calcuate_next_pos(current_position, self.scene_model)
+        # #计算交点并绘图
+        # self._update_laser_step()
+        # self.update()
 
-        if result_point is not None:
-            self.scene_model.laser_path.append(result_point)
-            self.update()
+    def _calcuate_complete_path(self):
+        while True:
+            current_position = self.scene_model.laser_path[-1]
+            result_point = self.next_position.calcuate_next_pos(current_position, self.scene_model)
 
-            # update segment info
-            UpdateLaser.update_laser(self.scene_model)
+            if result_point is not None:
+                self.scene_model.laser_path.append(result_point)
 
-            # calcuate energy result
-            if self.scene_model.incident_angle:
-                latest_angle = self.scene_model.incident_angle[-1]
-                self.energy_tracker.calcuate_and_record(
-                    self.scene_model,
-                    latest_angle
-                )
+                UpdateLaser.update_laser(self.scene_model)
 
-            # update reflection table
-            if self.scene_model.reflection_data:
-                latest_data = self.scene_model.reflection_data[-1]
+                if self.scene_model.incident_angle:
+                    latest_angle = self.scene_model.incident_angle[-1]
+                    self.energy_tracker.calcuate_and_record(
+                        self.scene_model,
+                        latest_angle
+                    )
 
-                anchor_point = self.scene_model.laser_path[-1]
-                self.label_manager.add_label(anchor_point, latest_data)
+                if self.scene_model.reflection_data:
+                    latest_data = self.scene_model.reflection_data[-1]
+                    anchor_point = self.scene_model.laser_path[-1]
+                    self.label_manager.add_label(anchor_point, latest_data)
+                    self.reflection_data_update_signal.emit(latest_data)
+            else:
+                self._draw_exit_ray()
+                print("结束")
+                break
 
-                self.reflection_data_update_signal.emit(latest_data)
-            # 递归调用更新
-            self._update_laser_step()
-        else:
-            # 最后绘制一次尾函数出射
-            self._draw_exit_ray()
-            print("结束")
+
+
+    # def _update_laser_step(self):
+    #     if not self.scene_model.is_firing:
+    #         return
+
+    #     current_position = self.scene_model.laser_path[-1]
+    #     result_point = self.next_position.calcuate_next_pos(current_position, self.scene_model)
+
+    #     if result_point is not None:
+    #         self.scene_model.laser_path.append(result_point)
+    #         self.update()
+            
+    #         # update segment info
+    #         UpdateLaser.update_laser(self.scene_model)
+            
+    #         # calcuate energy result
+    #         if self.scene_model.incident_angle:
+    #             latest_angle = self.scene_model.incident_angle[-1]
+    #             self.energy_tracker.calcuate_and_record(
+    #                 self.scene_model,
+    #                 latest_angle
+    #             )
+            
+    #         # update reflection table
+    #         if self.scene_model.reflection_data:
+    #             latest_data = self.scene_model.reflection_data[-1]
+
+    #             anchor_point = self.scene_model.laser_path[-1]
+    #             self.label_manager.add_label(anchor_point, latest_data)
+    #             self.reflection_data_update_signal.emit(latest_data)
+            
+    #         # 递归调用更新
+    #         self._update_laser_step()
+    #     else:
+    #         # 最后绘制一次尾函数出射
+    #         self._draw_exit_ray()
+    #         print("结束")
 
     def _draw_exit_ray(self):
         """绘制出射线"""
@@ -241,6 +272,7 @@ class CanvasWidget(QWidget):
     # 清空显示台
     @reset_before_update
     def clear_display(self):
+
         # fix：忘记更新直线为水平了
         self.scene_model.current_segment = {
             'toward_right': True,

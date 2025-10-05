@@ -11,7 +11,6 @@ class ControlPanel(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.setStyleSheet("border: 1px solid red;")
         self._setup_ui()
 
     def _setup_ui(self):
@@ -46,11 +45,12 @@ class ControlPanel(QWidget):
 
         # depth_ratio
         depth_layout = QHBoxLayout()
-        depth_layout.addWidget(QLabel("深径比(孔洞深度h/半径r)："))
+        depth_layout.addWidget(QLabel("深径比："))
         self.depth_ratio = QSpinBox()
         self.depth_ratio.setValue(2)
         self.depth_ratio.valueChanged.connect(self.depth_ratio_changed.emit)
         depth_layout.addWidget(self.depth_ratio)
+        depth_layout.addWidget(QLabel("(孔洞深度h/半径r)"))
         depth_layout.addStretch()
         params_layout.addLayout(depth_layout)
 
@@ -70,40 +70,15 @@ class ControlPanel(QWidget):
 
         # create table
         self.reflection_table = QTableWidget()
-        self.reflection_table.setColumnCount(3)
-        self.reflection_table.setHorizontalHeaderLabels(["入射角", "吸收率", "当前能量"])
-        
-        # Table style
-        self.reflection_table.setStyleSheet("""
-            QTableWidget {
-                background-color: white;
-                border: 1px solid #ddd;
-                gridline-color: #e0e0e0;
-                font-size: 12px;
-            }
-            QTableWidget::item {
-                padding: 5px;
-                border-bottom: 1px solid #f0f0f0;
-            }
-            QTableWidget::item:selected {
-                background-color: #e3f2fd;
-                color: #1976d2;
-            }
-            QHeaderView::section {
-                background-color: #f5f5f5;
-                padding: 8px;
-                border: none;
-                border-bottom: 2px solid #ddd;
-                font-weight: bold;
-                color: #555;
-            }
-        """)
-        
+        self.reflection_table.setColumnCount(4)
+        self.reflection_table.setHorizontalHeaderLabels(["入射角", "吸收率", "吸收能量", "剩余出射能量"])
+    
         # Column width settings
         header = self.reflection_table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
         self.reflection_table.setColumnWidth(0, 40)  # 标号列固定宽度
 
         # disable editing
@@ -147,12 +122,6 @@ class ControlPanel(QWidget):
         self.clear_display.emit()
     
     def add_reflection_data(self, data):
-        """
-        Add reflection data to table (called via signal from canvas)
-        
-        Args:
-            data: Dictionary with keys: index, angle, absorptivity, remaining_energy
-        """
         import math
         from PyQt6.QtWidgets import QTableWidgetItem
         from PyQt6.QtCore import Qt
@@ -160,6 +129,7 @@ class ControlPanel(QWidget):
         angle_rad = data['angle']
         absorptivity = data['absorptivity']
         remaining_energy = data['remaining_energy']
+        absorbed_energy = data['absorbed_energy']
         
         # Convert to display format
         angle_degrees = math.degrees(angle_rad)
@@ -179,10 +149,15 @@ class ControlPanel(QWidget):
         absorption_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         self.reflection_table.setItem(row_count, 1, absorption_item)
         
-        # Column 2: Remaining energy
-        energy_item = QTableWidgetItem(f"{remaining_energy:.2f}%")
+        # Column 2: absorbed_energy
+        energy_item = QTableWidgetItem(f"{absorbed_energy:.2f}%")
         energy_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         self.reflection_table.setItem(row_count, 2, energy_item)
+
+        # remaining_energy
+        energy_item = QTableWidgetItem(f"{remaining_energy:.2f}%")
+        energy_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.reflection_table.setItem(row_count, 3, energy_item)
 
     def clear_table(self):
         self.reflection_table.setRowCount(0)

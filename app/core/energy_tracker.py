@@ -8,7 +8,9 @@ class EnergyTracker:
     def calcuate_and_record(self, scene_model, incident_angle_rad):
         A, R = self.absorptivity_calculator.absorptivity_rate_calcuate(incident_angle_rad)
 
+        # 吸收的能量
         absorbed_energy = scene_model.current_energy * A
+        # 剩余出射能量
         scene_model.current_energy *= R
 
         scene_model.reflection_data.append({
