@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QTableWidget, QHeaderView, QVBoxLayout, QWidget, QSpinBox, QPushButton
 from PyQt6.QtCore import pyqtSignal
+from app.widgets.total_absorptivity_widget import TotalAbsorptivityWidget
 
 class ControlPanel(QWidget):
     beam_radius_changed = pyqtSignal(int)
@@ -53,7 +54,7 @@ class ControlPanel(QWidget):
         depth_layout.addWidget(QLabel("(孔洞深度h/半径r)"))
         depth_layout.addStretch()
         params_layout.addLayout(depth_layout)
-
+        
         # laser_position
         position_layout = QHBoxLayout()
         position_layout.addWidget(QLabel("入射坐标："))
@@ -64,12 +65,20 @@ class ControlPanel(QWidget):
         position_layout.addStretch()
         params_layout.addLayout(position_layout)
 
+        params_layout.addStretch()
+
         # result panel 
         result_widget = QWidget()
         result_layout = QVBoxLayout(result_widget)
 
         # create table
         self.reflection_table = QTableWidget()
+        
+        # line height
+        self.reflection_table.setMinimumHeight(150)
+        self.reflection_table.horizontalHeader().setFixedHeight(30)
+        self.reflection_table.verticalHeader().setDefaultSectionSize(30)
+
         self.reflection_table.setColumnCount(4)
         self.reflection_table.setHorizontalHeaderLabels(["入射角", "吸收率", "吸收能量", "剩余出射能量"])
     
@@ -87,11 +96,15 @@ class ControlPanel(QWidget):
         # center align
         self.reflection_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
 
+        # total absorptivity widget
+        self.total_absorptivity_widget = TotalAbsorptivityWidget(self)
+
         result_layout.addWidget(self.reflection_table)
+        result_layout.addWidget(self.total_absorptivity_widget)
 
         # add two widget to left_main_layout
         left_main_layout.addWidget(params_widget, 1)
-        left_main_layout.addWidget(result_widget, 3)
+        left_main_layout.addWidget(result_widget, 4)
 
         # ------
         
@@ -112,7 +125,7 @@ class ControlPanel(QWidget):
         button_layout.addWidget(self.clear_display_button)
         button_layout.addStretch() 
         
-        main_layout.addWidget(left_main_widget, 5) 
+        main_layout.addWidget(left_main_widget, 8) 
         main_layout.addWidget(button_widget, 1) 
 
     def _on_fire_button_clicked(self):
@@ -121,6 +134,7 @@ class ControlPanel(QWidget):
     def _on_clear_display_button_clicked(self):
         self.clear_display.emit()
     
+    # update table data 
     def add_reflection_data(self, data):
         import math
         from PyQt6.QtWidgets import QTableWidgetItem
@@ -159,6 +173,11 @@ class ControlPanel(QWidget):
         energy_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         self.reflection_table.setItem(row_count, 3, energy_item)
 
+    def update_total_absorptivity(self, scene_model):
+        self.total_absorptivity_widget.update_data(scene_model)
+    
     def clear_table(self):
         self.reflection_table.setRowCount(0)
         self.reflection_table.scrollToTop()
+
+        self.total_absorptivity_widget.reset()

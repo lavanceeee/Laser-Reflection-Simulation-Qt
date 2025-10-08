@@ -17,6 +17,7 @@ class CanvasWidget(QWidget):
     reflection_data_update_signal = pyqtSignal(dict)
     # clear table signal
     clear_table_signal = pyqtSignal()
+    laser_finished_signal = pyqtSignal(object)
 
     def __init__(self):
         super().__init__()
@@ -71,13 +72,15 @@ class CanvasWidget(QWidget):
 
         self.dynamic_render.render_laser_firing(painter, self.scene_model)
 
-        # 切线
-        self.function_render.render_tangent_line(painter, self.scene_model)
-        
-        # 法线
-        self.function_render.render_normal_line(painter, self.scene_model)
+        if self.dynamic_render.is_animation_complete:
 
-        self.label_renderer.render_labels(painter, self.label_manager.labels)
+            # 切线
+            self.function_render.render_tangent_line(painter, self.scene_model)
+        
+            # 法线
+            self.function_render.render_normal_line(painter, self.scene_model)
+
+            self.label_renderer.render_labels(painter, self.label_manager.labels)
 
         # 添加到 paintEvent 的最后
         # TestRender.draw_current_laser_line(painter, self.scene_model)
@@ -207,9 +210,11 @@ class CanvasWidget(QWidget):
                     latest_data = self.scene_model.reflection_data[-1]
                     anchor_point = self.scene_model.laser_path[-1]
                     self.label_manager.add_label(anchor_point, latest_data)
-                    self.reflection_data_update_signal.emit(latest_data)
+                    
+                    # self.reflection_data_update_signal.emit(latest_data)
             else:
                 self._draw_exit_ray()
+                # self.laser_finished_signal.emit(self.scene_model)
                 print("结束")
                 break
 

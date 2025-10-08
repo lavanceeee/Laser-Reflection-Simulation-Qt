@@ -2,11 +2,15 @@ from PyQt6.QtCore import QPointF, QRectF, QTimeLine
 from PyQt6.QtGui import QColor, QPainterPath, QPen
 import math
 
+from app.widgets import canvas_widget
+
 class DynamicRender:
     def __init__(self):
         self.timeline = QTimeLine(1000)  # 2秒动画
         self.timeline.setFrameRange(0, 100)
         self.animation_progress = 1.0
+
+        self.is_animation_complete = True
 
     def render_laser_firing(self, painter, scene_model):
         if not scene_model.is_firing or not scene_model.laser_pos:
@@ -89,8 +93,9 @@ class DynamicRender:
         return animated_path
     
     def start_animation(self, update_callback):
-        """开始动画"""
         self.animation_progress = 0.0
+        self.is_animation_complete = False
+
         # 断开之前的连接
         try:
             self.timeline.frameChanged.disconnect()
@@ -103,6 +108,13 @@ class DynamicRender:
         """更新动画进度"""
         self.animation_progress = frame / 100.0
         update_callback()  # 触发重绘
+
+        if frame >= 99:
+            self.is_animation_complete = True
+            if hasattr(update_callback, '__self__'):
+                canvas_widget = update_callback.__self__
+                if hasattr(canvas_widget, 'laser_finished_signal'):
+                    canvas_widget.laser_finished_signal.emit(canvas_widget.scene_model)
 
     def _draw_latest_point(self, painter, scene_model):
         painter.setPen(QPen(QColor(255, 255, 0), 1))

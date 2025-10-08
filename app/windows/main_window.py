@@ -45,6 +45,10 @@ class MainWindow(QMainWindow):
         self.canvas.reflection_data_update_signal.connect(self.control_panel.add_reflection_data)
 
         self.canvas.clear_table_signal.connect(self.control_panel.clear_table)
+
+        self.canvas.laser_finished_signal.connect(
+            self._on_laser_finished
+        )
         
     #参数变化
     def _on_beam_radius_changed(self, radius):
@@ -64,6 +68,14 @@ class MainWindow(QMainWindow):
 
     def _on_clear_display(self):
         self.canvas.clear_display()
+    
+    def _on_laser_finished(self, scene_model):
+        self.control_panel.clear_table()
+
+        for reflection_data in scene_model.reflection_data:
+            self.control_panel.add_reflection_data(reflection_data)
+
+        self.control_panel.update_total_absorptivity(scene_model)
 
 
 
