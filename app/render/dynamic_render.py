@@ -48,7 +48,7 @@ class DynamicRender:
         for point in animated_path[1:]:
             path.lineTo(QPointF(point[0], point[1]))
 
-        pen = QPen(QColor(101, 184, 105), 1)
+        pen = QPen(QColor(101, 184, 105), 0.5)
         painter.setPen(pen)
         painter.drawPath(path)
 

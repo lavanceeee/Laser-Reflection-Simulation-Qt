@@ -75,7 +75,7 @@ class StaticRender:
 
         #抗锯齿
         painter.setRenderHint(painter.RenderHint.Antialiasing, True)
-        painter.setPen(QPen(QColor(0, 0, 255), 1))
+        painter.setPen(QPen(QColor(25, 161, 228), 0.5))
 
         if points:
             path = QPainterPath()
@@ -105,7 +105,7 @@ class StaticRender:
         start_y = laser_center_y - laser_radius
         end_y = laser_center_y + laser_radius
 
-        painter.setPen(QPen(QColor(0, 0, 0), 0))  # 灰色
+        painter.setPen(QPen(QColor(0, 0, 0, 128), 0))  # 灰色
 
         painter.drawLine(
             QPointF(laser_center_x, start_y),
@@ -119,6 +119,7 @@ class StaticRender:
 
         laser_center_x = logical_width * 0.55
         laser_center_y = logical_height * 0.5
+
         laser_radius = scene_model.laser_radius
 
         #将数值映射到坐标轴
@@ -163,7 +164,7 @@ class StaticRender:
         rect_y = center_y - rect_height / 2.0
     
         painter.setPen(QPen(QColor(100, 100, 255), 0))  # 蓝色边框
-        painter.setBrush(QColor(150, 150, 255, 100))    # 稍深蓝色填充
+        # painter.setBrush(QColor(150, 150, 255, 100))    # 稍深蓝色填充
         painter.drawRect(QRectF(rect_x, rect_y, rect_width, rect_height))
         
         # transparent brush

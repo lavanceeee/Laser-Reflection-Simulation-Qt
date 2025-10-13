@@ -78,7 +78,6 @@ class UpdateLaser:
         if abs(relative_incident_angle) > math.pi / 2.0:
             relative_incident_angle = math.pi - abs(relative_incident_angle)
             
-            print(f"------改变后的角度{relative_incident_angle}---------")
         scene_model.incident_angle.append(abs(relative_incident_angle))
 
         #转回斜率

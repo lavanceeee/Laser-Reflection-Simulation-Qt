@@ -92,6 +92,7 @@ class CanvasWidget(QWidget):
         super().resizeEvent(event)
         if self.scene_model.is_firing:
             self.scene_model.reset_model()
+            self.label_manager.clear_labels()
             self.update()
 
     # 鼠标缩放事件
@@ -185,10 +186,6 @@ class CanvasWidget(QWidget):
 
         self.dynamic_render.start_animation(self.update)
 
-        # #计算交点并绘图
-        # self._update_laser_step()
-        # self.update()
-
     def _calcuate_complete_path(self):
         while True:
             current_position = self.scene_model.laser_path[-1]
@@ -217,8 +214,6 @@ class CanvasWidget(QWidget):
                 # self.laser_finished_signal.emit(self.scene_model)
                 print("结束")
                 break
-
-
 
     # def _update_laser_step(self):
     #     if not self.scene_model.is_firing:
@@ -265,10 +260,10 @@ class CanvasWidget(QWidget):
         
         if self.scene_model.current_segment['toward_right']:
             # 向右延伸
-            exit_x = last_x + 60
+            exit_x = last_x + 100
         else:
             # 向左延伸  
-            exit_x = last_x - 60
+            exit_x = last_x - 100
             
         exit_y = last_y + slope * (exit_x - last_x)
         self.scene_model.laser_path.append((exit_x, exit_y))

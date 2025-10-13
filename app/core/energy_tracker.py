@@ -2,6 +2,7 @@ from app.algorithm.absorptivity_rate import AbsorptivityRate
 
 class EnergyTracker:
     def __init__(self):
+
         self.absorptivity_calculator = AbsorptivityRate()
 
     # record each 
@@ -14,6 +15,7 @@ class EnergyTracker:
         scene_model.current_energy *= R
 
         scene_model.reflection_data.append({
+            'index': len(scene_model.reflection_data),
             'angle': incident_angle_rad,
             'absorptivity': A,
             'remaining_energy': scene_model.current_energy,

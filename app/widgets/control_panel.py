@@ -40,6 +40,8 @@ class ControlPanel(QWidget):
         self.hole_radius = QSpinBox()
         self.hole_radius.setValue(25)
         self.hole_radius.valueChanged.connect(self.hole_radius_changed.emit)
+        self.hole_radius.valueChanged.connect(self._update_laser_pos_max)
+
         hole_radius_layout.addWidget(self.hole_radius)
         hole_radius_layout.addStretch()
         params_layout.addLayout(hole_radius_layout)
@@ -60,6 +62,10 @@ class ControlPanel(QWidget):
         position_layout.addWidget(QLabel("入射坐标："))
         self.laser_pos = QSpinBox()
         self.laser_pos.setValue(25)
+
+        #初始最大值
+        self.laser_pos.setMaximum(50)
+
         self.laser_pos.valueChanged.connect(self.laser_position_changed.emit)
         position_layout.addWidget(self.laser_pos)
         position_layout.addStretch()
@@ -114,9 +120,11 @@ class ControlPanel(QWidget):
         
         # 激光控制按钮
         self.fire_button = QPushButton("开始")
+        self.fire_button.setFixedWidth(80)
 
         #清空显示台
         self.clear_display_button = QPushButton("清空显示台")
+        self.clear_display_button.setFixedWidth(80)
 
         self.fire_button.clicked.connect(self._on_fire_button_clicked)
         self.clear_display_button.clicked.connect(self._on_clear_display_button_clicked)
@@ -154,7 +162,7 @@ class ControlPanel(QWidget):
         self.reflection_table.insertRow(row_count)
         
         # Column 0: Incident angle
-        angle_item = QTableWidgetItem(f"{angle_degrees:.2f}°")
+        angle_item = QTableWidgetItem(f"{angle_degrees:.1f}°")
         angle_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         self.reflection_table.setItem(row_count, 0, angle_item)
         
@@ -181,3 +189,8 @@ class ControlPanel(QWidget):
         self.reflection_table.scrollToTop()
 
         self.total_absorptivity_widget.reset()
+
+    def _update_laser_pos_max(self, hole_radius_value):
+        max_value = 2 * hole_radius_value
+
+        self.laser_pos.setMaximum(max_value)
