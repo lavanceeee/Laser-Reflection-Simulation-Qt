@@ -19,11 +19,11 @@ class MainWindow(QMainWindow):
 
         layout = QVBoxLayout(central_widget)
 
-        #canvas
+        # canvas
         self.canvas = CanvasWidget()
         layout.addWidget(self.canvas, 3)
 
-        #panel
+        # panel
         self.control_panel = ControlPanel()
         layout.addWidget(self.control_panel, 1)
 
@@ -32,14 +32,18 @@ class MainWindow(QMainWindow):
         self.control_panel.beam_radius_changed.connect(self._on_beam_radius_changed)
         self.control_panel.depth_ratio_changed.connect(self._on_depth_ratio_changed)
 
-        #孔洞半径变化
+        # 孔洞半径变化
         self.control_panel.hole_radius_changed.connect(self._on_hole_radius_changed)
         self.control_panel.laser_position_changed.connect(self._on_laser_position_changed)
 
         self.control_panel.laser_fire_started.connect(self._on_laser_fire_started)
 
-        #清空显示台
+        # 清空显示台
         self.control_panel.clear_display.connect(self._on_clear_display)
+
+        # 实部 虚部两个参数
+        self.control_panel.laser_refractive_index_changed_in_panel.connect(self._laser_refractive_index_changed)
+        self.control_panel.laser_extinction_coefficient_changed_in_panel.connect(self._laser_extinction_coeffic)
 
         # 更新table信号
         self.canvas.reflection_data_update_signal.connect(self.control_panel.add_reflection_data)
@@ -49,8 +53,8 @@ class MainWindow(QMainWindow):
         self.canvas.laser_finished_signal.connect(
             self._on_laser_finished
         )
-        
-    #参数变化
+   
+    # 参数变化
     def _on_beam_radius_changed(self, radius):
         self.canvas.set_beam_radius(radius)
 
@@ -77,6 +81,11 @@ class MainWindow(QMainWindow):
 
         self.control_panel.update_total_absorptivity(scene_model)
 
+    def _laser_refractive_index_changed(self, index):
+        self.canvas.updaete_refractive_index(index=index)
+
+    def _laser_extinction_coeffic(self, index):
+        self.canvas.update_extinction_coefficient(index=index)
 
 
 

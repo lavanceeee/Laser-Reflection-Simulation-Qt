@@ -4,11 +4,9 @@ class AbsorptivityRate:
     def __init__(self):
         
         # 复反射率
-        # 实部 折射率
-        self.refractive_index = 4.2231
-
-        # 虚部 消光系数
-        self.extinction_coefficient = 0.061005
+        self.refractive_index = 4.2231 # 实部 折射率
+        
+        self.extinction_coefficient = 0.061005 # 虚部 消光系数
 
     def absorptivity_rate_calcuate(self, incident_angle_rad):
         n_magnitude = math.sqrt(
