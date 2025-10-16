@@ -1,17 +1,20 @@
 from PyQt6.QtWidgets import QLabel
-from PyQt6.QtCore import Qt
 
 class TotalAbsorptivityWidget(QLabel):
     def __init__(self, parent=None):
         super().__init__(parent)
-        # self._setup_ui()
+        # 设置红色字体和放大
+        self.setStyleSheet("""
+            QLabel {
+                color: #dc3545;
+                font-size: 16px;
+                font-weight: 600;
+            }
+        """)
         self.reset()
 
-    # def _setup_ui(self):
-    #     self.setMinimumHeight(35)
-
     def reset(self):
-        self.setText("Total absorptivity:")
+        self.setText("总吸收率:")
 
     def update_data(self, scene_model):
         if not scene_model.reflection_data:
@@ -23,8 +26,4 @@ class TotalAbsorptivityWidget(QLabel):
 
         total_absorptivity = 100.0 - remaining_energy
 
-        self.setText(f"Total absorptivity: {total_absorptivity:.2f}%")
-        
-
-
-    
+        self.setText(f"总吸收率: {total_absorptivity:.2f}%")

@@ -41,7 +41,7 @@ class CanvasWidget(QWidget):
 
         self.offset_x = 0.0
         self.offset_y = 0.0
-        
+
         # 鼠标拖动状态
         self.is_dragging = False
         self.drag_start_x = 0
@@ -56,7 +56,7 @@ class CanvasWidget(QWidget):
         self.scene_model.canvas_height = painter.window().height()
 
         painter.fillRect(self.rect(), QColor(240, 240, 240))
-    
+
         # 2. 保存当前状态
         painter.save()
 
@@ -76,7 +76,7 @@ class CanvasWidget(QWidget):
 
             # 切线
             self.function_render.render_tangent_line(painter, self.scene_model)
-        
+
             # 法线
             self.function_render.render_normal_line(painter, self.scene_model)
 
@@ -87,7 +87,7 @@ class CanvasWidget(QWidget):
         painter.restore()
 
     # window resize event
-    # fix(currently): Mismatch issue caused by window size switching during path drawing   
+    # fix: Mismatch issue caused by window size switching during path drawing
     def resizeEvent(self, event):
         super().resizeEvent(event)
         if self.scene_model.is_firing:
@@ -100,7 +100,7 @@ class CanvasWidget(QWidget):
         mouse_pos = event.position()
         mouse_x = mouse_pos.x()
         mouse_y = mouse_pos.y()
-        
+
         delta = event.angleDelta().y()
 
         zoom_in = delta > 0
@@ -112,14 +112,14 @@ class CanvasWidget(QWidget):
             # 计算鼠标在变换后坐标系中的位置
             old_pos_x = (mouse_x - self.offset_x) / self.scale_factor
             old_pos_y = (mouse_y - self.offset_y) / self.scale_factor
-            
+
             self.scale_factor = new_scale
 
             # 计算新的偏移，保持鼠标位置不变
             self.offset_x = mouse_x - old_pos_x * self.scale_factor
             self.offset_y = mouse_y - old_pos_y * self.scale_factor
-            
-            self.update() 
+
+            self.update()
 
     # 鼠标拖动功能
     def mousePressEvent(self, event):
@@ -136,15 +136,15 @@ class CanvasWidget(QWidget):
             # 计算移动距离
             dx = event.position().x() - self.drag_start_x
             dy = event.position().y() - self.drag_start_y
-            
+
             # 更新偏移量
             self.offset_x += dx
             self.offset_y += dy
-            
+
             # 更新拖动起始位置
             self.drag_start_x = event.position().x()
             self.drag_start_y = event.position().y()
-            
+
             self.update()
 
     def mouseReleaseEvent(self, event):
@@ -162,14 +162,14 @@ class CanvasWidget(QWidget):
     def set_hole_radius(self, hole_radius):
         self.scene_model.set_hole_radius(hole_radius)
         self.update()
-    
+
     @reset_before_update
     def set_depth_ratio(self, ratio):
         self.scene_model.set_depth_ratio(ratio)
         self.update()
 
     @reset_before_update
-    def set_laser_position(self, position): 
+    def set_laser_position(self, position):
         self.scene_model.laser_position = position
         self.update()
 
@@ -186,6 +186,14 @@ class CanvasWidget(QWidget):
 
         self.dynamic_render.start_animation(self.update)
 
+    @reset_before_update
+    def updaete_refractive_index(self, index):
+        self.energy_tracker.absorptivity_calculator.refractive_index = index
+
+    @reset_before_update
+    def update_extinction_coefficient(self, index):
+        self.energy_tracker.absorptivity_calculator.extinction_coefficient= index
+        
     def _calcuate_complete_path(self):
         while True:
             current_position = self.scene_model.laser_path[-1]
@@ -207,7 +215,7 @@ class CanvasWidget(QWidget):
                     latest_data = self.scene_model.reflection_data[-1]
                     anchor_point = self.scene_model.laser_path[-1]
                     self.label_manager.add_label(anchor_point, latest_data)
-                    
+
                     # self.reflection_data_update_signal.emit(latest_data)
             else:
                 self._draw_exit_ray()
@@ -225,10 +233,10 @@ class CanvasWidget(QWidget):
     #     if result_point is not None:
     #         self.scene_model.laser_path.append(result_point)
     #         self.update()
-            
+
     #         # update segment info
     #         UpdateLaser.update_laser(self.scene_model)
-            
+
     #         # calcuate energy result
     #         if self.scene_model.incident_angle:
     #             latest_angle = self.scene_model.incident_angle[-1]
@@ -236,7 +244,7 @@ class CanvasWidget(QWidget):
     #                 self.scene_model,
     #                 latest_angle
     #             )
-            
+
     #         # update reflection table
     #         if self.scene_model.reflection_data:
     #             latest_data = self.scene_model.reflection_data[-1]
@@ -244,7 +252,7 @@ class CanvasWidget(QWidget):
     #             anchor_point = self.scene_model.laser_path[-1]
     #             self.label_manager.add_label(anchor_point, latest_data)
     #             self.reflection_data_update_signal.emit(latest_data)
-            
+
     #         # 递归调用更新
     #         self._update_laser_step()
     #     else:
@@ -257,14 +265,14 @@ class CanvasWidget(QWidget):
         last_point = self.scene_model.laser_path[-1]
         last_x, last_y = last_point
         slope = self.scene_model.current_segment['path_function']['k']
-        
+
         if self.scene_model.current_segment['toward_right']:
             # 向右延伸
             exit_x = last_x + 100
         else:
-            # 向左延伸  
+            # 向左延伸
             exit_x = last_x - 100
-            
+
         exit_y = last_y + slope * (exit_x - last_x)
         self.scene_model.laser_path.append((exit_x, exit_y))
         self.update()
@@ -272,16 +280,14 @@ class CanvasWidget(QWidget):
     # 清空显示台
     @reset_before_update
     def clear_display(self):
-
         # fix：忘记更新直线为水平了
         self.scene_model.current_segment = {
             'toward_right': True,
             'step_size': 3,
             'path_function': {
-                'k': 0,          
+                'k': 0,
                 'b': self.scene_model.laser_pos[1]
             },
             'segment_id': 0
         }
         self.update()
-

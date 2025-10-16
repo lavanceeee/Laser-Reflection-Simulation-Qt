@@ -1,6 +1,7 @@
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QTableWidget, QHeaderView, QVBoxLayout, QWidget, QSpinBox, QPushButton
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QTableWidget, QHeaderView, QVBoxLayout, QWidget, QSpinBox, QPushButton, QGroupBox
 from PyQt6.QtCore import pyqtSignal
 from app.widgets.total_absorptivity_widget import TotalAbsorptivityWidget
+from app.widgets.laser_parameters import LaserParametersWidget
 
 class ControlPanel(QWidget):
     beam_radius_changed = pyqtSignal(int)
@@ -9,6 +10,8 @@ class ControlPanel(QWidget):
     laser_fire_started = pyqtSignal()
     clear_display = pyqtSignal()
     hole_radius_changed = pyqtSignal(int)
+    laser_refractive_index_changed_in_panel = pyqtSignal(float)
+    laser_extinction_coefficient_changed_in_panel = pyqtSignal(float)
 
     def __init__(self):
         super().__init__()
@@ -20,20 +23,27 @@ class ControlPanel(QWidget):
         # paramter selector and result area 
         left_main_widget = QWidget()
         left_main_layout = QHBoxLayout(left_main_widget)
-
-        params_widget = QWidget()
+        
+        params_widget = QGroupBox("基本参数")
+        params_widget.setStyleSheet("""
+            QGroupBox {
+                background-color: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                padding: 10px;
+                margin-top: 8px;
+            }
+            
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top left;
+                left: 10px;
+                padding: 0 5px;
+                font-weight: 500;
+            }
+        """)
         params_layout = QVBoxLayout(params_widget)
         
-        # laser_radius
-        beam_layout = QHBoxLayout()
-        beam_layout.addWidget(QLabel("激光半径："))
-        self.beam_radius = QSpinBox()
-        self.beam_radius.setValue(25)
-        self.beam_radius.valueChanged.connect(self.beam_radius_changed.emit)
-        beam_layout.addWidget(self.beam_radius)
-        beam_layout.addStretch() 
-        params_layout.addLayout(beam_layout)
-
         # hole_radius
         hole_radius_layout = QHBoxLayout()
         hole_radius_layout.addWidget(QLabel("孔洞半径："))
@@ -43,37 +53,53 @@ class ControlPanel(QWidget):
         self.hole_radius.valueChanged.connect(self._update_laser_pos_max)
 
         hole_radius_layout.addWidget(self.hole_radius)
+        hole_radius_layout.addWidget(QLabel("μm"))
+        
         hole_radius_layout.addStretch()
         params_layout.addLayout(hole_radius_layout)
 
         # depth_ratio
         depth_layout = QHBoxLayout()
-        depth_layout.addWidget(QLabel("深径比："))
+        depth_layout.addWidget(QLabel("孔洞深径比："))
         self.depth_ratio = QSpinBox()
         self.depth_ratio.setValue(2)
         self.depth_ratio.valueChanged.connect(self.depth_ratio_changed.emit)
         depth_layout.addWidget(self.depth_ratio)
-        depth_layout.addWidget(QLabel("(孔洞深度h/半径r)"))
+        depth_layout.addWidget(QLabel("(深度h/半径r)"))
         depth_layout.addStretch()
         params_layout.addLayout(depth_layout)
+
+        # laser_radius
+        beam_layout = QHBoxLayout()
+        beam_layout.addWidget(QLabel("激光半径："))
+        self.beam_radius = QSpinBox()
+        self.beam_radius.setValue(25)
+        self.beam_radius.valueChanged.connect(self.beam_radius_changed.emit)
+        beam_layout.addWidget(self.beam_radius)
+        beam_layout.addWidget(QLabel("μm"))
+        beam_layout.addStretch() 
+        params_layout.addLayout(beam_layout)
         
         # laser_position
         position_layout = QHBoxLayout()
         position_layout.addWidget(QLabel("入射坐标："))
         self.laser_pos = QSpinBox()
         self.laser_pos.setValue(25)
-
-        #初始最大值
         self.laser_pos.setMaximum(50)
 
         self.laser_pos.valueChanged.connect(self.laser_position_changed.emit)
         position_layout.addWidget(self.laser_pos)
         position_layout.addStretch()
         params_layout.addLayout(position_layout)
-
         params_layout.addStretch()
 
-        # result panel 
+        laser_reflection_widget = LaserParametersWidget()
+        laser_reflection_widget.laser_refractive_index_changed.connect(self.laser_refractive_index_changed_in_panel)
+        laser_reflection_widget.laser_extinction_coefficient_changed.connect(self.laser_extinction_coefficient_changed_in_panel)
+
+        """
+        result table 
+        """
         result_widget = QWidget()
         result_layout = QVBoxLayout(result_widget)
 
@@ -94,7 +120,7 @@ class ControlPanel(QWidget):
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
-        self.reflection_table.setColumnWidth(0, 40)  # 标号列固定宽度
+        self.reflection_table.setColumnWidth(0,30)  # 标号列固定宽度
 
         # disable editing
         self.reflection_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
@@ -110,13 +136,13 @@ class ControlPanel(QWidget):
 
         # add two widget to left_main_layout
         left_main_layout.addWidget(params_widget, 1)
-        left_main_layout.addWidget(result_widget, 4)
+        left_main_layout.addWidget(laser_reflection_widget, 1)
+        left_main_layout.addWidget(result_widget, 10)
 
         # ------
-        
-        # 右侧
         button_widget = QWidget()
         button_layout = QVBoxLayout(button_widget)
+        button_layout.setContentsMargins(0, 0, 0, 0)
         
         # 激光控制按钮
         self.fire_button = QPushButton("开始")
@@ -133,7 +159,7 @@ class ControlPanel(QWidget):
         button_layout.addWidget(self.clear_display_button)
         button_layout.addStretch() 
         
-        main_layout.addWidget(left_main_widget, 8) 
+        main_layout.addWidget(left_main_widget, 7) 
         main_layout.addWidget(button_widget, 1) 
 
     def _on_fire_button_clicked(self):
