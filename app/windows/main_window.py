@@ -1,4 +1,5 @@
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget
+from PyQt6.QtGui import QIcon
 from app.widgets.canvas_widget import CanvasWidget
 from app.widgets.control_panel import ControlPanel
 
@@ -10,8 +11,10 @@ class MainWindow(QMainWindow):
         self._connect_signals()
 
     def _set_window(self):
-        self.setWindowTitle("激光路径模拟")
+        self.setWindowTitle("光在小孔中的菲涅尔反射与能量吸收")
         self.setGeometry(100, 100, 800, 600)
+
+        self.setWindowIcon(QIcon('app-icon.png'))
 
     def _setup_layout(self):
         central_widget = QWidget()
@@ -44,6 +47,7 @@ class MainWindow(QMainWindow):
         # 实部 虚部两个参数
         self.control_panel.laser_refractive_index_changed_in_panel.connect(self._laser_refractive_index_changed)
         self.control_panel.laser_extinction_coefficient_changed_in_panel.connect(self._laser_extinction_coeffic)
+        self.control_panel.laser_wavelength_changed_in_panel.connect(self._laser_wavelength_changed)
 
         # 更新table信号
         self.canvas.reflection_data_update_signal.connect(self.control_panel.add_reflection_data)
@@ -54,7 +58,7 @@ class MainWindow(QMainWindow):
             self._on_laser_finished
         )
    
-    # 参数变化
+    # signal
     def _on_beam_radius_changed(self, radius):
         self.canvas.set_beam_radius(radius)
 
@@ -82,10 +86,13 @@ class MainWindow(QMainWindow):
         self.control_panel.update_total_absorptivity(scene_model)
 
     def _laser_refractive_index_changed(self, index):
-        self.canvas.updaete_refractive_index(index=index)
+        self.canvas.update_refractive_index(index=index)
 
     def _laser_extinction_coeffic(self, index):
         self.canvas.update_extinction_coefficient(index=index)
+
+    def _laser_wavelength_changed(self, index):
+        self.canvas.update_laser_wavelength(index)
 
 
 
