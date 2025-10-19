@@ -34,6 +34,15 @@ class CanvasWidget(QWidget):
         self.label_manager = LabelManager()
         self.label_renderer = LabelRenderer()
 
+        # alert info
+        self.laser_wavelength = 632
+        self.refractive_index = 4.2231
+        self.extinction_coefficient = 0.061005
+        self.hole_radius = 25
+        self.hole_depth = 50
+        self.laser_radius = 25
+        self.depth_ratio = 2
+
         # 缩放
         self.scale_factor = 1.0
         self.min_scale = 0.1
@@ -82,9 +91,41 @@ class CanvasWidget(QWidget):
 
             self.label_renderer.render_labels(painter, self.label_manager.labels)
 
-        # 添加到 paintEvent 的最后
         # TestRender.draw_current_laser_line(painter, self.scene_model)
         painter.restore()
+
+        self._draw_alerting_info(painter)
+
+    def _draw_alerting_info(self, painter):
+        margin_left = 10
+        margin_top = 30
+        line_height = 30
+
+        alerts = [
+            "光在小孔中的菲涅尔反射与能量吸收",
+            f"激光波长：{self.laser_wavelength}nm",
+            f"材料复折射率：{self.refractive_index:.4f} + i{self.extinction_coefficient:.6f}",
+            f"孔洞半径：{self.hole_radius}μm， 孔洞深度：{self.hole_depth}μm",
+            f"激光入射半径：{self.laser_radius}"
+        ]
+
+        for index, alert in enumerate(alerts):
+            painter.setPen(QColor(0, 0, 0))
+            font = painter.font()
+
+            if index == 0:
+                font.setPointSize(15)
+                font.setBold(True)
+            else:
+                font.setPointSize(12)
+                font.setBold(False)
+
+            painter.setFont(font)
+            painter.drawText(
+                margin_left,
+                margin_top + index * line_height,
+                alert
+            )
 
     # window resize event
     # fix: Mismatch issue caused by window size switching during path drawing
@@ -156,16 +197,21 @@ class CanvasWidget(QWidget):
     @reset_before_update
     def set_beam_radius(self, radius):
         self.scene_model.laser_radius = radius
+        self.laser_radius = radius
         self.update()
 
     @reset_before_update
     def set_hole_radius(self, hole_radius):
         self.scene_model.set_hole_radius(hole_radius)
+        self.hole_radius = hole_radius
+        self.hole_depth = hole_radius * self.depth_ratio
         self.update()
 
     @reset_before_update
     def set_depth_ratio(self, ratio):
         self.scene_model.set_depth_ratio(ratio)
+        self.depth_ratio = ratio
+        self.hole_depth = self.hole_radius * self.depth_ratio
         self.update()
 
     @reset_before_update
@@ -187,12 +233,21 @@ class CanvasWidget(QWidget):
         self.dynamic_render.start_animation(self.update)
 
     @reset_before_update
-    def updaete_refractive_index(self, index):
+    def update_laser_wavelength(self, index):
+        self.laser_wavelength = index
+        self.update()
+
+    @reset_before_update
+    def update_refractive_index(self, index):
+        self.refractive_index = index
         self.energy_tracker.absorptivity_calculator.refractive_index = index
+        self.update()
 
     @reset_before_update
     def update_extinction_coefficient(self, index):
+        self.extinction_coefficient = index
         self.energy_tracker.absorptivity_calculator.extinction_coefficient= index
+        self.update()
         
     def _calcuate_complete_path(self):
         while True:
@@ -223,43 +278,6 @@ class CanvasWidget(QWidget):
                 print("结束")
                 break
 
-    # def _update_laser_step(self):
-    #     if not self.scene_model.is_firing:
-    #         return
-
-    #     current_position = self.scene_model.laser_path[-1]
-    #     result_point = self.next_position.calcuate_next_pos(current_position, self.scene_model)
-
-    #     if result_point is not None:
-    #         self.scene_model.laser_path.append(result_point)
-    #         self.update()
-
-    #         # update segment info
-    #         UpdateLaser.update_laser(self.scene_model)
-
-    #         # calcuate energy result
-    #         if self.scene_model.incident_angle:
-    #             latest_angle = self.scene_model.incident_angle[-1]
-    #             self.energy_tracker.calcuate_and_record(
-    #                 self.scene_model,
-    #                 latest_angle
-    #             )
-
-    #         # update reflection table
-    #         if self.scene_model.reflection_data:
-    #             latest_data = self.scene_model.reflection_data[-1]
-
-    #             anchor_point = self.scene_model.laser_path[-1]
-    #             self.label_manager.add_label(anchor_point, latest_data)
-    #             self.reflection_data_update_signal.emit(latest_data)
-
-    #         # 递归调用更新
-    #         self._update_laser_step()
-    #     else:
-    #         # 最后绘制一次尾函数出射
-    #         self._draw_exit_ray()
-    #         print("结束")
-
     def _draw_exit_ray(self):
         """绘制出射线"""
         last_point = self.scene_model.laser_path[-1]
@@ -268,10 +286,10 @@ class CanvasWidget(QWidget):
 
         if self.scene_model.current_segment['toward_right']:
             # 向右延伸
-            exit_x = last_x + 100
+            exit_x = last_x + 60
         else:
             # 向左延伸
-            exit_x = last_x - 100
+            exit_x = last_x - 60
 
         exit_y = last_y + slope * (exit_x - last_x)
         self.scene_model.laser_path.append((exit_x, exit_y))
@@ -280,7 +298,7 @@ class CanvasWidget(QWidget):
     # 清空显示台
     @reset_before_update
     def clear_display(self):
-        # fix：忘记更新直线为水平了
+        # fix：更新直线为水平
         self.scene_model.current_segment = {
             'toward_right': True,
             'step_size': 3,
