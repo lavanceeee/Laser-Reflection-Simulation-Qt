@@ -11,6 +11,7 @@ class EnergyTracker:
 
         # 吸收的能量
         absorbed_energy = scene_model.current_energy * A
+        
         # 剩余出射能量
         scene_model.current_energy *= R
 

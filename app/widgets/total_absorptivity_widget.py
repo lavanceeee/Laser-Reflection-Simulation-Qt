@@ -3,7 +3,6 @@ from PyQt6.QtWidgets import QLabel
 class TotalAbsorptivityWidget(QLabel):
     def __init__(self, parent=None):
         super().__init__(parent)
-        # 设置红色字体和放大
         self.setStyleSheet("""
             QLabel {
                 color: #dc3545;

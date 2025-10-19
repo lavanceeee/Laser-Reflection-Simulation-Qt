@@ -12,6 +12,7 @@ class ControlPanel(QWidget):
     hole_radius_changed = pyqtSignal(int)
     laser_refractive_index_changed_in_panel = pyqtSignal(float)
     laser_extinction_coefficient_changed_in_panel = pyqtSignal(float)
+    laser_wavelength_changed_in_panel = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
@@ -96,6 +97,7 @@ class ControlPanel(QWidget):
         laser_reflection_widget = LaserParametersWidget()
         laser_reflection_widget.laser_refractive_index_changed.connect(self.laser_refractive_index_changed_in_panel)
         laser_reflection_widget.laser_extinction_coefficient_changed.connect(self.laser_extinction_coefficient_changed_in_panel)
+        laser_reflection_widget.laser_wavelength_changed.connect(self.laser_wavelength_changed_in_panel)
 
         """
         result table 
@@ -112,7 +114,7 @@ class ControlPanel(QWidget):
         self.reflection_table.verticalHeader().setDefaultSectionSize(30)
 
         self.reflection_table.setColumnCount(4)
-        self.reflection_table.setHorizontalHeaderLabels(["入射角", "吸收率", "吸收能量", "剩余出射能量"])
+        self.reflection_table.setHorizontalHeaderLabels(["入射角", "吸收率", "反射率", "剩余能量占比"])
     
         # Column width settings
         header = self.reflection_table.horizontalHeader()
@@ -135,8 +137,8 @@ class ControlPanel(QWidget):
         result_layout.addWidget(self.total_absorptivity_widget)
 
         # add two widget to left_main_layout
-        left_main_layout.addWidget(params_widget, 1)
         left_main_layout.addWidget(laser_reflection_widget, 1)
+        left_main_layout.addWidget(params_widget, 1)
         left_main_layout.addWidget(result_widget, 10)
 
         # ------
@@ -197,8 +199,8 @@ class ControlPanel(QWidget):
         absorption_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         self.reflection_table.setItem(row_count, 1, absorption_item)
         
-        # Column 2: absorbed_energy
-        energy_item = QTableWidgetItem(f"{absorbed_energy:.2f}%")
+        # Column 2: absorbed_energy -> changed to reflectivity(new)
+        energy_item = QTableWidgetItem(f"{100.0 - absorptivity_percent:.2f}%")
         energy_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         self.reflection_table.setItem(row_count, 2, energy_item)
 

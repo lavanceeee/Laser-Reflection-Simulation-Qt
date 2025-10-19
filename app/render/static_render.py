@@ -91,7 +91,7 @@ class StaticRender:
         logical_width = painter.window().width()
         logical_height = painter.window().height()
 
-        laser_center_x = logical_width * 0.55
+        laser_center_x = logical_width * 0.6 # fix: 距离过远 0.55 -> 0.6
         laser_center_y = logical_height * 0.5 
 
         laser_radius = scene_model.laser_radius
@@ -117,7 +117,7 @@ class StaticRender:
         logical_width = painter.window().width()
         logical_height = painter.window().height()
 
-        laser_center_x = logical_width * 0.55
+        laser_center_x = logical_width * 0.6
         laser_center_y = logical_height * 0.5
 
         laser_radius = scene_model.laser_radius
