@@ -107,12 +107,6 @@ The simulation incorporates:
   - **Imaginary part (k)**: Governs **extinction coefficient** and absorption losses
   - **Wavelength-specific calibration** for Silicon material properties
 
-### Interactive Visualization Capabilities
-- **Real-time Ray Visualization**: Dynamic rendering of **incident**, **reflected**, and **transmitted ray paths**
-- **Adaptive Viewport Control**: Mouse-driven **pan and zoom functionality** with **coordinate transformation matrices**
-- **Energy Flux Mapping**: Color-coded visualization of **local energy density** and **absorption hotspots**
-- **Statistical Analysis Interface**: Real-time computation and display of **total absorptivity**, **reflection coefficients**, and **energy partitioning ratios**
-
 ## Quick Start
 
 ### Prerequisites
