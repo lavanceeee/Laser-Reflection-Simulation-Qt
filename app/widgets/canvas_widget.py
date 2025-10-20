@@ -106,11 +106,11 @@ class CanvasWidget(QWidget):
             f"激光波长：{self.laser_wavelength}nm",
             f"材料复折射率：{self.refractive_index:.4f} + i{self.extinction_coefficient:.6f}",
             f"孔洞半径：{self.hole_radius}μm， 孔洞深度：{self.hole_depth}μm",
-            f"激光入射半径：{self.laser_radius}"
+            f"入射激光半径：{self.laser_radius}"
         ]
 
         for index, alert in enumerate(alerts):
-            painter.setPen(QColor(0, 0, 0))
+            painter.setPen(QColor(0, 0, 0, 256))
             font = painter.font()
 
             if index == 0:
