@@ -7,7 +7,7 @@ class SceneModel:
         self.canvas_height = 0
 
         self.laser_radius = 25
-        self.depth_ratio = 2
+        self.depth_ratio = 2.0
         self.laser_position = 25
 
         self.sigma = 20

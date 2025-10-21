@@ -12,7 +12,7 @@ class MainWindow(QMainWindow):
 
     def _set_window(self):
         self.setWindowTitle("光在小孔中的菲涅尔反射与能量吸收")
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 1200, 700)
 
         self.setWindowIcon(QIcon('app-icon.png'))
 

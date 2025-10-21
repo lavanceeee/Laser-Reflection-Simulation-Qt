@@ -1,11 +1,11 @@
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QTableWidget, QHeaderView, QVBoxLayout, QWidget, QSpinBox, QPushButton, QGroupBox
+from PyQt6.QtWidgets import QDoubleSpinBox, QHBoxLayout, QLabel, QTableWidget, QHeaderView, QVBoxLayout, QWidget, QSpinBox, QPushButton, QGroupBox
 from PyQt6.QtCore import pyqtSignal
 from app.widgets.total_absorptivity_widget import TotalAbsorptivityWidget
 from app.widgets.laser_parameters import LaserParametersWidget
 
 class ControlPanel(QWidget):
     beam_radius_changed = pyqtSignal(int)
-    depth_ratio_changed = pyqtSignal(int)
+    depth_ratio_changed = pyqtSignal(float)
     laser_position_changed = pyqtSignal(int)
     laser_fire_started = pyqtSignal()
     clear_display = pyqtSignal()
@@ -62,8 +62,11 @@ class ControlPanel(QWidget):
         # depth_ratio
         depth_layout = QHBoxLayout()
         depth_layout.addWidget(QLabel("孔洞深径比："))
-        self.depth_ratio = QSpinBox()
-        self.depth_ratio.setValue(2)
+        self.depth_ratio = QDoubleSpinBox()
+        self.depth_ratio.setValue(2.0)
+        self.depth_ratio.setDecimals(1)
+        self.depth_ratio.setSingleStep(0.1)
+
         self.depth_ratio.valueChanged.connect(self.depth_ratio_changed.emit)
         depth_layout.addWidget(self.depth_ratio)
         depth_layout.addWidget(QLabel("(深度h/半径r)"))

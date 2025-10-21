@@ -14,7 +14,7 @@ class LabelData:
 
         # label position
         offset_x, offset_y = directions[self.index % len(directions)]
-        print(offset_x, offset_y)
+        
         self.display_position = (anchor_point[0] + offset_x, anchor_point[1] + offset_y)
 
         self.text_lines = [   

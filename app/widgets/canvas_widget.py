@@ -41,7 +41,7 @@ class CanvasWidget(QWidget):
         self.hole_radius = 25
         self.hole_depth = 50
         self.laser_radius = 25
-        self.depth_ratio = 2
+        self.depth_ratio = 2.0
 
         # 缩放
         self.scale_factor = 1.0
@@ -105,7 +105,7 @@ class CanvasWidget(QWidget):
             "光在小孔中的菲涅尔反射与能量吸收",
             f"激光波长：{self.laser_wavelength}nm",
             f"材料复折射率：{self.refractive_index:.4f} + i{self.extinction_coefficient:.6f}",
-            f"孔洞半径：{self.hole_radius}μm， 孔洞深度：{self.hole_depth}μm",
+            f"孔洞半径：{self.hole_radius}μm， 孔洞深度：{self.hole_depth:.1f}μm",
             f"入射激光半径：{self.laser_radius}"
         ]
 
