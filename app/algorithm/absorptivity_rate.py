@@ -14,7 +14,11 @@ class AbsorptivityRate:
             self.extinction_coefficient ** 2
         )
 
+        # 避免用户将折射率调整为 0 导致除零或非法反三角函数运算
+        n_magnitude = max(n_magnitude, 1e-8)
+
         sin_reflective = math.sin(incident_angle_rad) / n_magnitude
+        sin_reflective = max(min(sin_reflective, 1.0), -1.0)
         reflective_angle_rad = math.asin(sin_reflective)
 
         Rs = (
